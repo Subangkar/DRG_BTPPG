@@ -45,6 +45,7 @@ typedef struct _uib_view1_view_context {
 	Evas_Object *gravity_x;
 	Evas_Object *gravity_y;
 	Evas_Object *gravity_z;
+	Evas_Object *file_size;
 	Evas_Object *start_stop;
 } uib_view1_view_context;
 

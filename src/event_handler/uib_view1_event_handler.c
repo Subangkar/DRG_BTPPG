@@ -51,6 +51,52 @@ typedef struct _uib_view1_control_context {
 
 } uib_view1_control_context;
 
+
+typedef enum {
+	HEART_RATE,PPG,ACCELEROMETER_X,ACCELEROMETER_Y,ACCELEROMETER_Z,GYROSCOPE_X,GYROSCOPE_Y,GYROSCOPE_Z,PRESSURE,GRAVITY_X,GRAVITY_Y,GRAVITY_Z,ALL
+} sensor_t;
+
+struct sensor_values {
+	float hr, ppg, acc_x, acc_y, acc_z, gyr_x, gyr_y, gyr_z, pres, grav_x,
+			grav_y, grav_z;
+} all_sensor_current_vals;
+
+unsigned long long fsize=0;
+
+void update_sensor_current_val(float val, sensor_t type){
+
+	static FILE* fp = NULL;
+
+	if(!fp){
+		char fpath[256];
+		strcpy(fpath,app_get_data_path());
+		strcat(fpath,"ppg_data.csv");
+		fp=fopen(fpath, "w");// app_get_data_path()
+	}
+
+	if (type == ALL) {
+		for (float* p = &all_sensor_current_vals.hr;
+				p <= &all_sensor_current_vals.grav_z; ++p) {
+			*p = val;
+		}
+		printf("Updated all to %f\n", val);
+	} else {
+		float* p = &all_sensor_current_vals.hr;
+		p += (int) type;
+		*p = val;
+		printf("Updated %d\n", (int) type);
+	}
+	fsize = ftell(fp)/1000;
+	if(fsize < 1*1024*1024){
+			struct sensor_values vals = all_sensor_current_vals;
+			fprintf(fp, "%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n",
+					vals.hr,vals.ppg,vals.acc_x, vals.acc_y, vals.acc_z, vals.gyr_x, vals.gyr_y, vals.gyr_z, vals.pres, vals.grav_x,
+					vals.grav_y, vals.grav_z);
+//			fprintf(fp, "%f,%f\n",
+//					vals.hr,vals.ppg);
+	}
+}
+
 /* Define callback */
 void
 example_sensor_callback(sensor_h sensor, sensor_event_s *event, uib_view1_view_context *user_data)
@@ -59,45 +105,60 @@ example_sensor_callback(sensor_h sensor, sensor_event_s *event, uib_view1_view_c
        If a callback is used to listen for different sensor types,
        it can check the sensor type
     */
+
     sensor_type_e type;
     sensor_get_type(sensor, &type);
     char *formatted_label = (char*)malloc(256 * sizeof(char));
     if (type == SENSOR_HRM) {
 		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>HR=%3d</font>", FONT_SIZE,(int) event->values[0]);
 		elm_object_text_set(user_data->hrm_data, formatted_label);
+		update_sensor_current_val(event->values[0], HEART_RATE);
     }
     if (type == SENSOR_HRM_LED_GREEN) {
-		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%.2f</font>", FONT_SIZE,event->values[0]);
+		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>PPG=%.2f</font>", FONT_SIZE,event->values[0]);
 		elm_object_text_set(user_data->ppg_green, formatted_label);
+		update_sensor_current_val(event->values[0], PPG);
     }
     if (type == SENSOR_ACCELEROMETER) {
-		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%.2f</font>", FONT_SIZE,event->values[0]);
+		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>ACC_X=%.2f</font>", FONT_SIZE,event->values[0]);
 		elm_object_text_set(user_data->accel_x, formatted_label);
-		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%.2f</font>", FONT_SIZE,event->values[1]);
+		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>ACC_Y=%.2f</font>", FONT_SIZE,event->values[1]);
 		elm_object_text_set(user_data->accel_y, formatted_label);
-		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%.2f</font>", FONT_SIZE,event->values[2]);
+		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>ACC_Z=%.2f</font>", FONT_SIZE,event->values[2]);
 		elm_object_text_set(user_data->accel_z, formatted_label);
+		update_sensor_current_val(event->values[0], ACCELEROMETER_X);
+		update_sensor_current_val(event->values[1], ACCELEROMETER_Y);
+		update_sensor_current_val(event->values[2], ACCELEROMETER_Z);
     }
     if (type == SENSOR_GYROSCOPE) {
-    		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%.2f</font>", FONT_SIZE,event->values[0]);
+    		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>GYRO_X=%.2f</font>", FONT_SIZE,event->values[0]);
     		elm_object_text_set(user_data->gyro_x, formatted_label);
-    		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%.2f</font>", FONT_SIZE,event->values[1]);
+    		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>GYRO_Y=%.2f</font>", FONT_SIZE,event->values[1]);
     		elm_object_text_set(user_data->gyro_y, formatted_label);
-    		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%.2f</font>", FONT_SIZE,event->values[2]);
+    		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>GYRO_Z=%.2f</font>", FONT_SIZE,event->values[2]);
     		elm_object_text_set(user_data->gyro_z, formatted_label);
+    		update_sensor_current_val(event->values[0], GYROSCOPE_X);
+    		update_sensor_current_val(event->values[1], GYROSCOPE_Y);
+    		update_sensor_current_val(event->values[2], GYROSCOPE_Z);
         }
     if (type == SENSOR_PRESSURE) {
-    		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%.2f</font/>", FONT_SIZE,event->values[0]);
+    		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>Barometer=%.2f</font/>", FONT_SIZE,event->values[0]);
     		elm_object_text_set(user_data->baro, formatted_label);
+    		update_sensor_current_val(event->values[0], PRESSURE);
         }
     if (type == SENSOR_GRAVITY) {
-    		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%.2f</font/>", FONT_SIZE,event->values[0]);
+    		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>GRAVITY_X=%.2f</font/>", FONT_SIZE,event->values[0]);
     		elm_object_text_set(user_data->gravity_x, formatted_label);
-    		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%.2f</font/>", FONT_SIZE,event->values[1]);
+    		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>GRAVITY_Y=%.2f</font/>", FONT_SIZE,event->values[1]);
     		elm_object_text_set(user_data->gravity_y, formatted_label);
-    		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%.2f</font/>", FONT_SIZE,event->values[2]);
+    		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>GRAVITY_Z=%.2f</font/>", FONT_SIZE,event->values[2]);
 			elm_object_text_set(user_data->gravity_z, formatted_label);
+			update_sensor_current_val(event->values[0], GRAVITY_X);
+			update_sensor_current_val(event->values[1], GRAVITY_Y);
+			update_sensor_current_val(event->values[2], GRAVITY_Z);
         }
+	sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>fileSize=%u KB</font/>", FONT_SIZE,fsize);
+	elm_object_text_set(user_data->file_size, formatted_label);
 }
 
 Eina_Bool
@@ -136,7 +197,7 @@ sensor_not_supported(sensor_name){
 }
 
 void view1_start_stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
-	//PPG
+			//PPG
 			bool supported_PPG = false;
 			sensor_type_e sensor_type_PPG = SENSOR_HRM_LED_GREEN;
 			sensor_is_supported(sensor_type_PPG, &supported_PPG);
@@ -158,7 +219,7 @@ void view1_start_stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, vo
 				start_sensor(sensor_type_HRM, vc);
 			}
 
-			//ACC
+			//ACC (x,y,z)
 			bool supported_ACC = false;
 			sensor_type_e sensor_type_ACC = SENSOR_ACCELEROMETER;
 			sensor_is_supported(sensor_type_ACC, &supported_ACC);
@@ -168,7 +229,7 @@ void view1_start_stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, vo
 			} else{
 				start_sensor(sensor_type_ACC, vc);
 			}
-			//Gravity
+			//Gravity (x,y,z)
 			bool supported_Gravity = false;
 			sensor_type_e sensor_type_Gravity = SENSOR_GRAVITY;
 			sensor_is_supported(sensor_type_Gravity, &supported_Gravity);
@@ -179,7 +240,7 @@ void view1_start_stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, vo
 				start_sensor(sensor_type_Gravity, vc);
 			}
 
-			//Gyroscope
+			//Gyroscope (x,y,z)
 			bool supported_Gyro = false;
 			sensor_type_e sensor_type_Gyro = SENSOR_GYROSCOPE;
 			sensor_is_supported(sensor_type_Gyro, &supported_Gyro);
@@ -201,7 +262,7 @@ void view1_start_stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, vo
 				start_sensor(sensor_type_Pres, vc);
 			}
 
-
+			update_sensor_current_val(0.0, ALL);
 }
 
 

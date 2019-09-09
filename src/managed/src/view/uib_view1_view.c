@@ -46,8 +46,8 @@ void uib_view1_config_SQUARE_320x320_portrait() {
 		elm_box_homogeneous_set(vc->box1, EINA_FALSE);
 		elm_box_horizontal_set(vc->box1, EINA_FALSE);
 		elm_box_padding_set(vc->box1,0,0);
-		evas_object_size_hint_align_set(vc->box1, -1.0, -1.0);
-		evas_object_size_hint_weight_set(vc->box1, 1.0, 1.0);
+		evas_object_size_hint_align_set(vc->box1, -1.0, -1.0);
+		evas_object_size_hint_weight_set(vc->box1, 1.0, 1.0);
 		if (!vc->hrm_data) {
 			vc->hrm_data = elm_label_add(vc->box1);
 		}
@@ -168,6 +168,16 @@ void uib_view1_config_SQUARE_320x320_portrait() {
 			elm_label_ellipsis_set(vc->gravity_z, EINA_TRUE);
 			evas_object_show(vc->gravity_z);
 		}
+		if (!vc->file_size) {
+			vc->file_size = elm_label_add(vc->box1);
+		}
+		if(vc->file_size) {
+			evas_object_size_hint_align_set(vc->file_size, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->file_size, 1.0, 1.0);			elm_object_text_set(vc->file_size,_UIB_LOCALE("<font=Tizen:style=Regular font_size=15>FileInfo</font/>"));
+			elm_label_line_wrap_set(vc->file_size, (Elm_Wrap_Type)ELM_WRAP_NONE);
+			elm_label_wrap_width_set(vc->file_size,0);
+			elm_label_ellipsis_set(vc->file_size, EINA_TRUE);
+			evas_object_show(vc->file_size);
+		}
 		if (!vc->start_stop) {
 			vc->start_stop = elm_button_add(vc->box1);
 		}
@@ -188,6 +198,7 @@ void uib_view1_config_SQUARE_320x320_portrait() {
 		elm_box_pack_end(vc->box1, vc->gravity_x);
 		elm_box_pack_end(vc->box1, vc->gravity_y);
 		elm_box_pack_end(vc->box1, vc->gravity_z);
+		elm_box_pack_end(vc->box1, vc->file_size);
 		elm_box_pack_end(vc->box1, vc->start_stop);
 		evas_object_show(vc->box1);
 	}
