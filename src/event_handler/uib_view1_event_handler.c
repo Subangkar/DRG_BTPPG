@@ -60,18 +60,18 @@ struct sensor_values {
 	float hr, ppg, acc_x, acc_y, acc_z, gyr_x, gyr_y, gyr_z, pres, grav_x,
 			grav_y, grav_z;
 } all_sensor_current_vals;
-
 unsigned long long fsize=0;
 
-void update_sensor_current_val(float val, sensor_t type){
+void update_sensor_current_val(float val, sensor_t type) {
 
 	static FILE* fp = NULL;
+	static int16_t read_sensors = 0;
 
-	if(!fp){
+	if (!fp) {
 		char fpath[256];
-		strcpy(fpath,app_get_data_path());
-		strcat(fpath,"ppg_data.csv");
-		fp=fopen(fpath, "w");// app_get_data_path()
+		strcpy(fpath, app_get_data_path());
+		strcat(fpath, "ppg_data.csv");
+		fp = fopen(fpath, "w");
 	}
 
 	if (type == ALL) {
@@ -79,21 +79,22 @@ void update_sensor_current_val(float val, sensor_t type){
 				p <= &all_sensor_current_vals.grav_z; ++p) {
 			*p = val;
 		}
-		printf("Updated all to %f\n", val);
 	} else {
 		float* p = &all_sensor_current_vals.hr;
 		p += (int) type;
 		*p = val;
-		printf("Updated %d\n", (int) type);
+		read_sensors |= 1 << ((int) type);
 	}
-	fsize = ftell(fp)/1000;
-	if(fsize < 1*1024*1024){
-			struct sensor_values vals = all_sensor_current_vals;
-			fprintf(fp, "%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n",
-					vals.hr,vals.ppg,vals.acc_x, vals.acc_y, vals.acc_z, vals.gyr_x, vals.gyr_y, vals.gyr_z, vals.pres, vals.grav_x,
-					vals.grav_y, vals.grav_z);
-//			fprintf(fp, "%f,%f\n",
-//					vals.hr,vals.ppg);
+	fsize = ftell(fp) / 1024;
+	// append only when file size < 1GB and all sensors data have been updated
+	if (fsize < 1 * 1024 * 1024 && (read_sensors == 0x0FFF)) {
+		struct sensor_values vals = all_sensor_current_vals;
+		fprintf(fp,
+				"%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n",
+				vals.hr, vals.ppg, vals.acc_x, vals.acc_y, vals.acc_z,
+				vals.gyr_x, vals.gyr_y, vals.gyr_z, vals.pres, vals.grav_x,
+				vals.grav_y, vals.grav_z);
+		read_sensors = 0;
 	}
 }
 
@@ -157,7 +158,9 @@ example_sensor_callback(sensor_h sensor, sensor_event_s *event, uib_view1_view_c
 			update_sensor_current_val(event->values[1], GRAVITY_Y);
 			update_sensor_current_val(event->values[2], GRAVITY_Z);
         }
-	sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>fileSize=%u KB</font/>", FONT_SIZE,fsize);
+	sprintf(formatted_label,
+			"<font=Tizen:style=Regular font_size=%d>fileSize=%u KB</font/>",
+			FONT_SIZE, fsize);
 	elm_object_text_set(user_data->file_size, formatted_label);
 }
 
