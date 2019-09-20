@@ -183,7 +183,7 @@ start_sensor(sensor_type_e  sensor_type, uib_view1_view_context *vc){
 	sensor_listener_set_option(listener, SENSOR_OPTION_ALWAYS_ON);
 	sensor_listener_start(listener);
 	//End the sensors after the "recording time".
-	ecore_timer_add(recording_time,end_sensor,listener);
+//	ecore_timer_add(recording_time,end_sensor,listener);
 }
 
 void
