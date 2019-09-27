@@ -5,6 +5,8 @@
     <ui-application appid="org.example.drgbtppg" exec="drgbtppg" multiple="false" nodisplay="false" taskmanage="true" type="capp">
         <label>DRG BTPPG</label>
         <icon>admin-ajax.php.png</icon>
+        <metadata key="http://tizen.org/metadata/background-category/background-network"/>
+        <metadata key="http://tizen.org/metadata/background-category/sensor"/>        
     </ui-application>
     <privileges>
         <privilege>http://tizen.org/privilege/healthinfo</privilege>

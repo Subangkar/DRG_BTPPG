@@ -35,18 +35,9 @@ typedef struct _uib_view1_view_context {
 	Evas_Object *box1;
 	Evas_Object *hrm_data;
 	Evas_Object *ppg_green;
-	Evas_Object *accel_x;
-	Evas_Object *accel_y;
-	Evas_Object *accel_z;
-	Evas_Object *gyro_x;
-	Evas_Object *gyro_y;
-	Evas_Object *gyro_z;
-	Evas_Object *baro;
-	Evas_Object *gravity_x;
-	Evas_Object *gravity_y;
-	Evas_Object *gravity_z;
 	Evas_Object *file_size;
 	Evas_Object *start_stop;
+	Evas_Object *stop_button;
 } uib_view1_view_context;
 
 

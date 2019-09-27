@@ -46,6 +46,8 @@ float array_PRES[array_size];
 
 unsigned long long array_ts[array_size];
 
+// -------------------------- Data Type Definitions ----------------------------------------
+
 typedef struct _uib_view1_control_context {
 	/* add your variables here */
 
@@ -60,7 +62,20 @@ struct sensor_values {
 	float hr, ppg, acc_x, acc_y, acc_z, gyr_x, gyr_y, gyr_z, pres, grav_x,
 			grav_y, grav_z;
 } all_sensor_current_vals;
+
+typedef enum {
+	STOPPED, RUNNING
+} service_state_t;
+
+// -------------------------- Status Variables ----------------------------------------
+
+service_state_t service_state = STOPPED;
+
+sensor_listener_h listener[SENSOR_LAST+1];
+
 unsigned long long fsize=0;
+
+// --------------------------------------------------------------------------------------------
 
 void update_sensor_current_val(float val, sensor_t type) {
 
@@ -75,10 +90,12 @@ void update_sensor_current_val(float val, sensor_t type) {
 	}
 
 	if (type == ALL) {
+		// resets value
 		for (float* p = &all_sensor_current_vals.hr;
 				p <= &all_sensor_current_vals.grav_z; ++p) {
 			*p = val;
 		}
+		read_sensors = 0;
 	} else {
 		float* p = &all_sensor_current_vals.hr;
 		p += (int) type;
@@ -99,8 +116,7 @@ void update_sensor_current_val(float val, sensor_t type) {
 }
 
 /* Define callback */
-void
-example_sensor_callback(sensor_h sensor, sensor_event_s *event, uib_view1_view_context *user_data)
+void example_sensor_callback(sensor_h sensor, sensor_event_s *event, uib_view1_view_context *user_data)
 {
     /*
        If a callback is used to listen for different sensor types,
@@ -121,39 +137,19 @@ example_sensor_callback(sensor_h sensor, sensor_event_s *event, uib_view1_view_c
 		update_sensor_current_val(event->values[0], PPG);
     }
     if (type == SENSOR_ACCELEROMETER) {
-		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>ACC_X=%.2f</font>", FONT_SIZE,event->values[0]);
-		elm_object_text_set(user_data->accel_x, formatted_label);
-		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>ACC_Y=%.2f</font>", FONT_SIZE,event->values[1]);
-		elm_object_text_set(user_data->accel_y, formatted_label);
-		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>ACC_Z=%.2f</font>", FONT_SIZE,event->values[2]);
-		elm_object_text_set(user_data->accel_z, formatted_label);
 		update_sensor_current_val(event->values[0], ACCELEROMETER_X);
 		update_sensor_current_val(event->values[1], ACCELEROMETER_Y);
 		update_sensor_current_val(event->values[2], ACCELEROMETER_Z);
     }
     if (type == SENSOR_GYROSCOPE) {
-    		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>GYRO_X=%.2f</font>", FONT_SIZE,event->values[0]);
-    		elm_object_text_set(user_data->gyro_x, formatted_label);
-    		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>GYRO_Y=%.2f</font>", FONT_SIZE,event->values[1]);
-    		elm_object_text_set(user_data->gyro_y, formatted_label);
-    		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>GYRO_Z=%.2f</font>", FONT_SIZE,event->values[2]);
-    		elm_object_text_set(user_data->gyro_z, formatted_label);
     		update_sensor_current_val(event->values[0], GYROSCOPE_X);
     		update_sensor_current_val(event->values[1], GYROSCOPE_Y);
     		update_sensor_current_val(event->values[2], GYROSCOPE_Z);
         }
     if (type == SENSOR_PRESSURE) {
-    		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>Barometer=%.2f</font/>", FONT_SIZE,event->values[0]);
-    		elm_object_text_set(user_data->baro, formatted_label);
     		update_sensor_current_val(event->values[0], PRESSURE);
         }
     if (type == SENSOR_GRAVITY) {
-    		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>GRAVITY_X=%.2f</font/>", FONT_SIZE,event->values[0]);
-    		elm_object_text_set(user_data->gravity_x, formatted_label);
-    		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>GRAVITY_Y=%.2f</font/>", FONT_SIZE,event->values[1]);
-    		elm_object_text_set(user_data->gravity_y, formatted_label);
-    		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>GRAVITY_Z=%.2f</font/>", FONT_SIZE,event->values[2]);
-			elm_object_text_set(user_data->gravity_z, formatted_label);
 			update_sensor_current_val(event->values[0], GRAVITY_X);
 			update_sensor_current_val(event->values[1], GRAVITY_Y);
 			update_sensor_current_val(event->values[2], GRAVITY_Z);
@@ -162,30 +158,28 @@ example_sensor_callback(sensor_h sensor, sensor_event_s *event, uib_view1_view_c
 	elm_object_text_set(user_data->file_size, formatted_label);
 }
 
-Eina_Bool
-end_sensor(listener){
+Eina_Bool end_sensor(sensor_listener_h listener){
 	// Release all resources.
 	sensor_listener_stop(listener);
 	sensor_destroy_listener(listener);
 	return ECORE_CALLBACK_CANCEL;
 }
 
-void
-start_sensor(sensor_type_e  sensor_type, uib_view1_view_context *vc){
+
+void start_sensor(sensor_type_e sensor_type, uib_view1_view_context *vc){
 	//Set sensors and start recording
 	sensor_h sensor;
 	sensor_get_default_sensor(sensor_type, &sensor);
-	sensor_listener_h listener;
-	sensor_create_listener(sensor, &listener);
-	sensor_listener_set_event_cb(listener, 1000/SENSOR_FREQ, example_sensor_callback, vc); //25Hz
-	sensor_listener_set_option(listener, SENSOR_OPTION_ALWAYS_ON);
-	sensor_listener_start(listener);
+	sensor_create_listener(sensor, &listener[sensor_type]);
+	sensor_listener_set_event_cb(listener[sensor_type], 1000/SENSOR_FREQ, example_sensor_callback, vc); //25Hz
+	sensor_listener_set_option(listener[sensor_type], SENSOR_OPTION_ALWAYS_ON);
+	sensor_listener_start(listener[sensor_type]);
 	//End the sensors after the "recording time".
 //	ecore_timer_add(recording_time,end_sensor,listener);
 }
 
-void
-sensor_not_supported(sensor_name){
+
+void sensor_not_supported(const char* sensor_name){
 	//Record an Error if the sensor is not supported, else continue.
 	time_t rawtime;
 	struct tm * timeinfo;
@@ -198,74 +192,85 @@ sensor_not_supported(sensor_name){
 }
 
 void view1_start_stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
-			//PPG
-			bool supported_PPG = false;
-			sensor_type_e sensor_type_PPG = SENSOR_HRM_LED_GREEN;
-			sensor_is_supported(sensor_type_PPG, &supported_PPG);
-			if (!supported_PPG) {
-				char sensor_name_PPG[256] = "PPG";
-				sensor_not_supported(sensor_name_PPG);
-			} else{
-				start_sensor(sensor_type_PPG,vc);
-			}
 
-			//HRM
-			bool supported_HRM = false;
-			sensor_type_e sensor_type_HRM = SENSOR_HRM;
-			sensor_is_supported(sensor_type_HRM, &supported_HRM);
-			if (!supported_HRM) {
-				char sensor_name_HRM[256] = "HRM";
-				sensor_not_supported(sensor_name_HRM);
-			} else{
-				start_sensor(sensor_type_HRM, vc);
-			}
+	for (int i = 0; i <= SENSOR_LAST; i++){
+		listener[i] = -1;
+	}
 
-			//ACC (x,y,z)
-			bool supported_ACC = false;
-			sensor_type_e sensor_type_ACC = SENSOR_ACCELEROMETER;
-			sensor_is_supported(sensor_type_ACC, &supported_ACC);
-			if (!supported_ACC) {
-				char sensor_name_ACC[256] = "ACC";
-				sensor_not_supported(sensor_name_ACC);
-			} else{
-				start_sensor(sensor_type_ACC, vc);
-			}
-			//Gravity (x,y,z)
-			bool supported_Gravity = false;
-			sensor_type_e sensor_type_Gravity = SENSOR_GRAVITY;
-			sensor_is_supported(sensor_type_Gravity, &supported_Gravity);
-			if (!supported_Gravity) {
-				char sensor_name_Gravity[256] = "Gravity";
-				sensor_not_supported(sensor_name_Gravity);
-			} else{
-				start_sensor(sensor_type_Gravity, vc);
-			}
+	//PPG
+	bool supported_PPG = false;
+	sensor_type_e sensor_type_PPG = SENSOR_HRM_LED_GREEN;
+	sensor_is_supported(sensor_type_PPG, &supported_PPG);
+	if (!supported_PPG) {
+		sensor_not_supported("PPG");
+	} else{
+		start_sensor(sensor_type_PPG,vc);
+	}
 
-			//Gyroscope (x,y,z)
-			bool supported_Gyro = false;
-			sensor_type_e sensor_type_Gyro = SENSOR_GYROSCOPE;
-			sensor_is_supported(sensor_type_Gyro, &supported_Gyro);
-			if (!supported_Gyro) {
-				char sensor_name_Gyro[256] = "Gyro";
-				sensor_not_supported(sensor_name_Gyro);
-			} else{
-				start_sensor(sensor_type_Gyro, vc);
-			}
+	//HRM
+	bool supported_HRM = false;
+	sensor_type_e sensor_type_HRM = SENSOR_HRM;
+	sensor_is_supported(sensor_type_HRM, &supported_HRM);
+	if (!supported_HRM) {
+		sensor_not_supported("HRM");
+	} else{
+		start_sensor(sensor_type_HRM, vc);
+	}
 
-			//Atmospheric pressure
-			bool supported_Pres = false;
-			sensor_type_e sensor_type_Pres = SENSOR_PRESSURE;
-			sensor_is_supported(sensor_type_Pres, &supported_Pres);
-			if (!supported_Pres) {
-				char sensor_name_Pres[256] = "Pressure";
-				sensor_not_supported(sensor_name_Pres);
-			} else{
-				start_sensor(sensor_type_Pres, vc);
-			}
+	//ACC (x,y,z)
+	bool supported_ACC = false;
+	sensor_type_e sensor_type_ACC = SENSOR_ACCELEROMETER;
+	sensor_is_supported(sensor_type_ACC, &supported_ACC);
+	if (!supported_ACC) {
+		sensor_not_supported("ACC");
+	} else{
+		start_sensor(sensor_type_ACC, vc);
+	}
+	//Gravity (x,y,z)
+	bool supported_Gravity = false;
+	sensor_type_e sensor_type_Gravity = SENSOR_GRAVITY;
+	sensor_is_supported(sensor_type_Gravity, &supported_Gravity);
+	if (!supported_Gravity) {
+		sensor_not_supported("Gravity");
+	} else{
+		start_sensor(sensor_type_Gravity, vc);
+	}
 
-			update_sensor_current_val(0.0, ALL);
+	//Gyroscope (x,y,z)
+	bool supported_Gyro = false;
+	sensor_type_e sensor_type_Gyro = SENSOR_GYROSCOPE;
+	sensor_is_supported(sensor_type_Gyro, &supported_Gyro);
+	if (!supported_Gyro) {
+		sensor_not_supported("Gyro");
+	} else{
+		start_sensor(sensor_type_Gyro, vc);
+	}
+
+	//Atmospheric pressure
+	bool supported_Pres = false;
+	sensor_type_e sensor_type_Pres = SENSOR_PRESSURE;
+	sensor_is_supported(sensor_type_Pres, &supported_Pres);
+	if (!supported_Pres) {
+		sensor_not_supported("Pressure");
+	} else{
+		start_sensor(sensor_type_Pres, vc);
+	}
+
+	update_sensor_current_val(0.0, ALL);
+	service_state = RUNNING;
 }
 
-
+void stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info){
+	update_sensor_current_val(0.0, ALL);
+	if(service_state == STOPPED)
+		return;
+	for (int i = 0; i <= SENSOR_LAST; i++){
+		if(listener[i] != -1){
+			end_sensor(listener[i]);
+			listener[i] = -1;
+		}
+	}
+	service_state = STOPPED;
+}
 
 

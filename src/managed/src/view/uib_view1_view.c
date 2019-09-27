@@ -12,6 +12,7 @@
 
 /* event handler declarations */
 void view1_start_stop_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void stop_onclicked(uib_view1_view_context*, Evas_Object*, void*);
 
 uib_view_context* uib_view_view1_create(Evas_Object* parent, void* create_callback_param) {
 	uib_view1_view_context* vc = calloc(1, sizeof(uib_view1_view_context));
@@ -27,6 +28,7 @@ uib_view_context* uib_view_view1_create(Evas_Object* parent, void* create_callba
 
 	//bind event handler
 	evas_object_smart_callback_add(vc->start_stop, "clicked", (Evas_Smart_Cb)view1_start_stop_onclicked, vc);
+	evas_object_smart_callback_add(vc->stop_button, "clicked", (Evas_Smart_Cb)stop_onclicked, vc);
 
 
 	evas_object_data_set(vc->root_container, KEY_VIEW_CONTEXT, vc);
@@ -68,106 +70,6 @@ void uib_view1_config_SQUARE_320x320_portrait() {
 			elm_label_ellipsis_set(vc->ppg_green, EINA_TRUE);
 			evas_object_show(vc->ppg_green);
 		}
-		if (!vc->accel_x) {
-			vc->accel_x = elm_label_add(vc->box1);
-		}
-		if(vc->accel_x) {
-			evas_object_size_hint_align_set(vc->accel_x, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->accel_x, 1.0, 1.0);			elm_object_text_set(vc->accel_x,_UIB_LOCALE("<font=Tizen:style=Regular font_size=3>accel_x</font/>"));
-			elm_label_line_wrap_set(vc->accel_x, (Elm_Wrap_Type)ELM_WRAP_NONE);
-			elm_label_wrap_width_set(vc->accel_x,0);
-			elm_label_ellipsis_set(vc->accel_x, EINA_TRUE);
-			evas_object_show(vc->accel_x);
-		}
-		if (!vc->accel_y) {
-			vc->accel_y = elm_label_add(vc->box1);
-		}
-		if(vc->accel_y) {
-			evas_object_size_hint_align_set(vc->accel_y, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->accel_y, 1.0, 1.0);			elm_object_text_set(vc->accel_y,_UIB_LOCALE("<font=Tizen:style=Regular font_size=3>accel_y</font/>"));
-			elm_label_line_wrap_set(vc->accel_y, (Elm_Wrap_Type)ELM_WRAP_NONE);
-			elm_label_wrap_width_set(vc->accel_y,0);
-			elm_label_ellipsis_set(vc->accel_y, EINA_TRUE);
-			evas_object_show(vc->accel_y);
-		}
-		if (!vc->accel_z) {
-			vc->accel_z = elm_label_add(vc->box1);
-		}
-		if(vc->accel_z) {
-			evas_object_size_hint_align_set(vc->accel_z, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->accel_z, 1.0, 1.0);			elm_object_text_set(vc->accel_z,_UIB_LOCALE("<font=Tizen:style=Regular font_size=3>accel_z</font/>"));
-			elm_label_line_wrap_set(vc->accel_z, (Elm_Wrap_Type)ELM_WRAP_NONE);
-			elm_label_wrap_width_set(vc->accel_z,0);
-			elm_label_ellipsis_set(vc->accel_z, EINA_TRUE);
-			evas_object_show(vc->accel_z);
-		}
-		if (!vc->gyro_x) {
-			vc->gyro_x = elm_label_add(vc->box1);
-		}
-		if(vc->gyro_x) {
-			evas_object_size_hint_align_set(vc->gyro_x, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->gyro_x, 1.0, 1.0);			elm_object_text_set(vc->gyro_x,_UIB_LOCALE("<font=Tizen:style=Regular font_size=3>gyro_x</font/>"));
-			elm_label_line_wrap_set(vc->gyro_x, (Elm_Wrap_Type)ELM_WRAP_NONE);
-			elm_label_wrap_width_set(vc->gyro_x,0);
-			elm_label_ellipsis_set(vc->gyro_x, EINA_TRUE);
-			evas_object_show(vc->gyro_x);
-		}
-		if (!vc->gyro_y) {
-			vc->gyro_y = elm_label_add(vc->box1);
-		}
-		if(vc->gyro_y) {
-			evas_object_size_hint_align_set(vc->gyro_y, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->gyro_y, 1.0, 1.0);			elm_object_text_set(vc->gyro_y,_UIB_LOCALE("<font=Tizen:style=Regular font_size=3>gyro_y</font/>"));
-			elm_label_line_wrap_set(vc->gyro_y, (Elm_Wrap_Type)ELM_WRAP_NONE);
-			elm_label_wrap_width_set(vc->gyro_y,0);
-			elm_label_ellipsis_set(vc->gyro_y, EINA_TRUE);
-			evas_object_show(vc->gyro_y);
-		}
-		if (!vc->gyro_z) {
-			vc->gyro_z = elm_label_add(vc->box1);
-		}
-		if(vc->gyro_z) {
-			evas_object_size_hint_align_set(vc->gyro_z, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->gyro_z, 1.0, 1.0);			elm_object_text_set(vc->gyro_z,_UIB_LOCALE("<font=Tizen:style=Regular font_size=3>gyro_z</font/>"));
-			elm_label_line_wrap_set(vc->gyro_z, (Elm_Wrap_Type)ELM_WRAP_NONE);
-			elm_label_wrap_width_set(vc->gyro_z,0);
-			elm_label_ellipsis_set(vc->gyro_z, EINA_TRUE);
-			evas_object_show(vc->gyro_z);
-		}
-		if (!vc->baro) {
-			vc->baro = elm_label_add(vc->box1);
-		}
-		if(vc->baro) {
-			evas_object_size_hint_align_set(vc->baro, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->baro, 1.0, 1.0);			elm_object_text_set(vc->baro,_UIB_LOCALE("<font=Tizen:style=Regular font_size=3>baro</font/>"));
-			elm_label_line_wrap_set(vc->baro, (Elm_Wrap_Type)ELM_WRAP_NONE);
-			elm_label_wrap_width_set(vc->baro,0);
-			elm_label_ellipsis_set(vc->baro, EINA_TRUE);
-			evas_object_show(vc->baro);
-		}
-		if (!vc->gravity_x) {
-			vc->gravity_x = elm_label_add(vc->box1);
-		}
-		if(vc->gravity_x) {
-			evas_object_size_hint_align_set(vc->gravity_x, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->gravity_x, 1.0, 1.0);			elm_object_text_set(vc->gravity_x,_UIB_LOCALE("<font=Tizen:style=Regular font_size=3>gravity_x</font/>"));
-			elm_label_line_wrap_set(vc->gravity_x, (Elm_Wrap_Type)ELM_WRAP_NONE);
-			elm_label_wrap_width_set(vc->gravity_x,0);
-			elm_label_ellipsis_set(vc->gravity_x, EINA_TRUE);
-			evas_object_show(vc->gravity_x);
-		}
-		if (!vc->gravity_y) {
-			vc->gravity_y = elm_label_add(vc->box1);
-		}
-		if(vc->gravity_y) {
-			evas_object_size_hint_align_set(vc->gravity_y, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->gravity_y, 1.0, 1.0);			elm_object_text_set(vc->gravity_y,_UIB_LOCALE("<font=Tizen:style=Regular font_size=3>gravity_y</font/>"));
-			elm_label_line_wrap_set(vc->gravity_y, (Elm_Wrap_Type)ELM_WRAP_NONE);
-			elm_label_wrap_width_set(vc->gravity_y,0);
-			elm_label_ellipsis_set(vc->gravity_y, EINA_TRUE);
-			evas_object_show(vc->gravity_y);
-		}
-		if (!vc->gravity_z) {
-			vc->gravity_z = elm_label_add(vc->box1);
-		}
-		if(vc->gravity_z) {
-			evas_object_size_hint_align_set(vc->gravity_z, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->gravity_z, 1.0, 1.0);			elm_object_text_set(vc->gravity_z,_UIB_LOCALE("<font=Tizen:style=Regular font_size=10>gravity_zs</font/>"));
-			elm_label_line_wrap_set(vc->gravity_z, (Elm_Wrap_Type)ELM_WRAP_NONE);
-			elm_label_wrap_width_set(vc->gravity_z,0);
-			elm_label_ellipsis_set(vc->gravity_z, EINA_TRUE);
-			evas_object_show(vc->gravity_z);
-		}
 		if (!vc->file_size) {
 			vc->file_size = elm_label_add(vc->box1);
 		}
@@ -182,24 +84,23 @@ void uib_view1_config_SQUARE_320x320_portrait() {
 			vc->start_stop = elm_button_add(vc->box1);
 		}
 		if (vc->start_stop) {
-			evas_object_size_hint_align_set(vc->start_stop, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->start_stop, 1.0, .1);			elm_object_text_set(vc->start_stop,_UIB_LOCALE("Start/Stop"));
+			evas_object_size_hint_align_set(vc->start_stop, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->start_stop, 1.0, .1);			elm_object_text_set(vc->start_stop,_UIB_LOCALE("Start"));
 			elm_object_style_set(vc->start_stop,"default");
 			evas_object_show(vc->start_stop);
 		}
+		if (!vc->stop_button) {
+			vc->stop_button = elm_button_add(vc->box1);
+		}
+		if (vc->stop_button) {
+			evas_object_size_hint_align_set(vc->stop_button, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->stop_button, 1.0, .1);			elm_object_text_set(vc->stop_button,_UIB_LOCALE("Stop"));
+			elm_object_style_set(vc->stop_button,"default");
+			evas_object_show(vc->stop_button);
+		}
 		elm_box_pack_end(vc->box1, vc->hrm_data);
 		elm_box_pack_end(vc->box1, vc->ppg_green);
-		elm_box_pack_end(vc->box1, vc->accel_x);
-		elm_box_pack_end(vc->box1, vc->accel_y);
-		elm_box_pack_end(vc->box1, vc->accel_z);
-		elm_box_pack_end(vc->box1, vc->gyro_x);
-		elm_box_pack_end(vc->box1, vc->gyro_y);
-		elm_box_pack_end(vc->box1, vc->gyro_z);
-		elm_box_pack_end(vc->box1, vc->baro);
-		elm_box_pack_end(vc->box1, vc->gravity_x);
-		elm_box_pack_end(vc->box1, vc->gravity_y);
-		elm_box_pack_end(vc->box1, vc->gravity_z);
 		elm_box_pack_end(vc->box1, vc->file_size);
 		elm_box_pack_end(vc->box1, vc->start_stop);
+		elm_box_pack_end(vc->box1, vc->stop_button);
 		evas_object_show(vc->box1);
 	}
 }
