@@ -18,6 +18,8 @@ char time_file[256];
 bool flag = false; //To check if the data is recorded
 
 
+#define SERVICE_APP_NAME "org.example.rawsensordata"
+
 float check_count_error_HRM = 0;
 float check_count_HRM = 0;
 float checking_time = 3; //Checking time duration in seconds
@@ -117,6 +119,19 @@ void update_sensor_current_val(float val, sensor_t type) {
 	}
 }
 
+unsigned long long get_fileSize(){
+	char fpath[256];
+	strcpy(fpath, app_get_data_path());
+	strcat(fpath, "ppg_data.csv");
+	FILE* fp = fopen(fpath, "r");
+	if(fp) {
+		unsigned long long filesize = ftell(fp);
+		fclose(fp);
+		return filesize;
+	}
+	return -1;
+}
+
 /* Define callback */
 void example_sensor_callback(sensor_h sensor, sensor_event_s *event, uib_view1_view_context *user_data)
 {
@@ -179,8 +194,13 @@ void sensor_not_supported(const char* sensor_name){
 	fclose (fp);
 }
 
+void start_sensors(uib_view1_view_context *vc);
+void stop_sensors(uib_view1_view_context *vc);
 
 void start_sensors(uib_view1_view_context *vc){
+	if(service_state == RUNNING)
+		return;
+
 	for (int i = 0; i <= SENSOR_LAST; i++){
 		listener[i] = -1;
 	}
@@ -243,17 +263,12 @@ void start_sensors(uib_view1_view_context *vc){
 	} else{
 		start_sensor(sensor_type_Pres, vc);
 	}
-}
-
-
-void view1_start_stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
-	start_sensors(vc);
-	update_sensor_current_val(0.0, ALL);
 	service_state = RUNNING;
+	ecore_timer_add(10, stop_sensors, vc);
 }
 
-void stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info){
-	update_sensor_current_val(0.0, ALL);
+
+void stop_sensors(){
 	if(service_state == STOPPED)
 		return;
 	for (int i = 0; i <= SENSOR_LAST; i++){
@@ -263,6 +278,83 @@ void stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_in
 		}
 	}
 	service_state = STOPPED;
+}
+
+void pause_sensors(uib_view1_view_context *vc){
+	stop_sensors(vc);
+	ecore_timer_add(10, start_sensors, vc);
+}
+
+
+
+
+
+static void launch_service()
+{
+	app_control_h app_control = NULL;
+	if (app_control_create(&app_control)== APP_CONTROL_ERROR_NONE)
+	{
+		if ((app_control_set_app_id(app_control, SERVICE_APP_NAME) == APP_CONTROL_ERROR_NONE)
+			&& (app_control_send_launch_request(app_control, NULL, NULL) == APP_CONTROL_ERROR_NONE))
+		{
+			dlog_print(DLOG_INFO, LOG_TAG, "App launch request sent!");
+		}
+		else
+		{
+			dlog_print(DLOG_ERROR, LOG_TAG, "App launch request sending failed!");
+		}
+//		if (app_control_destroy(app_control) == APP_CONTROL_ERROR_NONE)
+//		{
+//			dlog_print(DLOG_INFO, LOG_TAG, "App control destroyed.");
+//		}
+		// We exit our launcher app, there is no point in keeping it open.
+//		ui_app_exit();
+	}
+	else
+	{
+		dlog_print(DLOG_ERROR, LOG_TAG, "App control creation failed!");
+	}
+}
+
+static void stop_service()
+{
+	app_control_h app_control = NULL;
+	if (app_control_create(&app_control)== APP_CONTROL_ERROR_NONE)
+	{
+		if ((app_control_set_app_id(app_control, SERVICE_APP_NAME) == APP_CONTROL_ERROR_NONE)
+			&& (app_control_add_extra_data(app_control, "service_action", "stop") == APP_CONTROL_ERROR_NONE)
+			&& (app_control_send_launch_request(app_control, NULL, NULL) == APP_CONTROL_ERROR_NONE))
+		{
+			dlog_print(DLOG_INFO, LOG_TAG, "App launch request sent!");
+		}
+		else
+		{
+			dlog_print(DLOG_ERROR, LOG_TAG, "App launch request sending failed!");
+		}
+		if (app_control_destroy(app_control) == APP_CONTROL_ERROR_NONE)
+		{
+			dlog_print(DLOG_INFO, LOG_TAG, "App control destroyed.");
+		}
+//		ui_app_exit();
+	}
+	else
+	{
+		dlog_print(DLOG_ERROR, LOG_TAG, "App control creation failed!");
+	}
+}
+
+
+
+void view1_start_stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
+//	start_sensors(vc);
+//	update_sensor_current_val(0.0, ALL);
+	launch_service();
+}
+
+void stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info){
+//	pause_sensors(vc);
+//	update_sensor_current_val(0.0, ALL);
+	stop_service();
 }
 
 // ---------------------------- Sensor Utility Functions Definitions Start ------------------------------

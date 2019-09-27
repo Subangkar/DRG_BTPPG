@@ -8,5 +8,8 @@
     <package>
         <blacklist/>
         <resFallback autoGen="true"/>
+        <subProjects>
+            <tizenProject project="rawsensordata"/>
+        </subProjects>
     </package>
 </tproject>

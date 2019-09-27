@@ -3,6 +3,7 @@
 	<name>UIBuilderSingleView</name>
 	<comment></comment>
 	<projects>
+		<project>rawsensordata</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
