@@ -46,7 +46,7 @@ float array_PRES[array_size];
 
 unsigned long long array_ts[array_size];
 
-// -------------------------- Data Type Definitions ----------------------------------------
+// -------------------------- Data Type Definitions Start ----------------------------------------
 
 typedef struct _uib_view1_control_context {
 	/* add your variables here */
@@ -66,8 +66,10 @@ struct sensor_values {
 typedef enum {
 	STOPPED, RUNNING
 } service_state_t;
+// -------------------------- Data Type Definitions End ----------------------------------------
 
-// -------------------------- Status Variables ----------------------------------------
+
+// -------------------------- Status Variables Start ----------------------------------------
 
 service_state_t service_state = STOPPED;
 
@@ -75,7 +77,7 @@ sensor_listener_h listener[SENSOR_LAST+1];
 
 unsigned long long fsize=0;
 
-// --------------------------------------------------------------------------------------------
+// -------------------------- Status Variables End ----------------------------------------
 
 void update_sensor_current_val(float val, sensor_t type) {
 
@@ -142,42 +144,28 @@ void example_sensor_callback(sensor_h sensor, sensor_event_s *event, uib_view1_v
 		update_sensor_current_val(event->values[2], ACCELEROMETER_Z);
     }
     if (type == SENSOR_GYROSCOPE) {
-    		update_sensor_current_val(event->values[0], GYROSCOPE_X);
-    		update_sensor_current_val(event->values[1], GYROSCOPE_Y);
-    		update_sensor_current_val(event->values[2], GYROSCOPE_Z);
-        }
+		update_sensor_current_val(event->values[0], GYROSCOPE_X);
+		update_sensor_current_val(event->values[1], GYROSCOPE_Y);
+		update_sensor_current_val(event->values[2], GYROSCOPE_Z);
+	}
     if (type == SENSOR_PRESSURE) {
-    		update_sensor_current_val(event->values[0], PRESSURE);
-        }
+		update_sensor_current_val(event->values[0], PRESSURE);
+	}
     if (type == SENSOR_GRAVITY) {
-			update_sensor_current_val(event->values[0], GRAVITY_X);
-			update_sensor_current_val(event->values[1], GRAVITY_Y);
-			update_sensor_current_val(event->values[2], GRAVITY_Z);
-        }
+		update_sensor_current_val(event->values[0], GRAVITY_X);
+		update_sensor_current_val(event->values[1], GRAVITY_Y);
+		update_sensor_current_val(event->values[2], GRAVITY_Z);
+	}
 	sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>fileSize=%u KB</font/>", FONT_SIZE, fsize);
 	elm_object_text_set(user_data->file_size, formatted_label);
 }
 
-Eina_Bool end_sensor(sensor_listener_h listener){
-	// Release all resources.
-	sensor_listener_stop(listener);
-	sensor_destroy_listener(listener);
-	return ECORE_CALLBACK_CANCEL;
-}
 
+// ---------------------------- Sensor Utility Functions Declarations Start ------------------------------
+Eina_Bool end_sensor(sensor_listener_h listener);
 
-void start_sensor(sensor_type_e sensor_type, uib_view1_view_context *vc){
-	//Set sensors and start recording
-	sensor_h sensor;
-	sensor_get_default_sensor(sensor_type, &sensor);
-	sensor_create_listener(sensor, &listener[sensor_type]);
-	sensor_listener_set_event_cb(listener[sensor_type], 1000/SENSOR_FREQ, example_sensor_callback, vc); //25Hz
-	sensor_listener_set_option(listener[sensor_type], SENSOR_OPTION_ALWAYS_ON);
-	sensor_listener_start(listener[sensor_type]);
-	//End the sensors after the "recording time".
-//	ecore_timer_add(recording_time,end_sensor,listener);
-}
-
+void start_sensor(sensor_type_e sensor_type, uib_view1_view_context *vc);
+// ---------------------------- Sensor Utility Functions Declarations End ------------------------------
 
 void sensor_not_supported(const char* sensor_name){
 	//Record an Error if the sensor is not supported, else continue.
@@ -191,8 +179,8 @@ void sensor_not_supported(const char* sensor_name){
 	fclose (fp);
 }
 
-void view1_start_stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
 
+void start_sensors(uib_view1_view_context *vc){
 	for (int i = 0; i <= SENSOR_LAST; i++){
 		listener[i] = -1;
 	}
@@ -255,7 +243,11 @@ void view1_start_stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, vo
 	} else{
 		start_sensor(sensor_type_Pres, vc);
 	}
+}
 
+
+void view1_start_stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
+	start_sensors(vc);
 	update_sensor_current_val(0.0, ALL);
 	service_state = RUNNING;
 }
@@ -273,4 +265,26 @@ void stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_in
 	service_state = STOPPED;
 }
 
+// ---------------------------- Sensor Utility Functions Definitions Start ------------------------------
+// stops single sensor
+Eina_Bool end_sensor(sensor_listener_h listener){
+	// Release all resources.
+	sensor_listener_stop(listener);
+	sensor_destroy_listener(listener);
+	return ECORE_CALLBACK_CANCEL;
+}
+
+// starts single sensor
+void start_sensor(sensor_type_e sensor_type, uib_view1_view_context *vc){
+	//Set sensors and start recording
+	sensor_h sensor;
+	sensor_get_default_sensor(sensor_type, &sensor);
+	sensor_create_listener(sensor, &listener[sensor_type]);
+	sensor_listener_set_event_cb(listener[sensor_type], 1000/SENSOR_FREQ, example_sensor_callback, vc); //25Hz
+	sensor_listener_set_option(listener[sensor_type], SENSOR_OPTION_ALWAYS_ON);
+	sensor_listener_start(listener[sensor_type]);
+	//End the sensors after the "recording time".
+	// ecore_timer_add(recording_time,end_sensor,listener);
+}
+// ---------------------------- Sensor Utility Functions Definitions End ------------------------------
 
