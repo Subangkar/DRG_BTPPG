@@ -110,11 +110,15 @@ void view1_start_stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, vo
 	launch_service();
 	if(!timer)
 		timer = ecore_timer_loop_add(5, update_fileSize_info, vc);
+	else
+		ecore_timer_thaw(timer);
 }
 
 void stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info){
 	stop_service();
-	if(timer)
+	if(timer){
 		ecore_timer_freeze(timer);
+		ecore_timer_reset(timer);
+	}
 }
 
