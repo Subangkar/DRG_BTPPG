@@ -16,6 +16,17 @@
 
 #define SERVICE_APP_NAME "org.example.rawsensordata"
 
+#define DATA_RECORDING_DURATION 10
+#define DATA_RECORDING_INTERVAL 30
+
+typedef struct appdata_t{
+	char userid[31];
+	uint16_t recording_duration;
+	uint16_t recording_interval;
+} appdata_t;
+
+appdata_t appdata;
+
 unsigned long long get_fileSize(){
 	char fpath[256];
 	strcpy(fpath, app_get_data_path());
@@ -48,7 +59,7 @@ static void launch_service()
 	if (app_control_create(&app_control)== APP_CONTROL_ERROR_NONE)
 	{
 		if ((app_control_set_app_id(app_control, SERVICE_APP_NAME) == APP_CONTROL_ERROR_NONE)
-			&& (app_control_send_launch_request(app_control, NULL, NULL) == APP_CONTROL_ERROR_NONE))
+			&& (app_control_send_launch_request(app_control, NULL, &appdata) == APP_CONTROL_ERROR_NONE))
 		{
 			dlog_print(DLOG_INFO, LOG_TAG, "App launch request sent!");
 		}
@@ -77,7 +88,7 @@ static void stop_service()
 	{
 		if ((app_control_set_app_id(app_control, SERVICE_APP_NAME) == APP_CONTROL_ERROR_NONE)
 			&& (app_control_add_extra_data(app_control, "service_action", "stop") == APP_CONTROL_ERROR_NONE)
-			&& (app_control_send_launch_request(app_control, NULL, NULL) == APP_CONTROL_ERROR_NONE))
+			&& (app_control_send_launch_request(app_control, NULL, &appdata) == APP_CONTROL_ERROR_NONE))
 		{
 			dlog_print(DLOG_INFO, LOG_TAG, "App launch request sent!");
 		}
@@ -107,6 +118,10 @@ void update_fileSize_info(uib_view1_view_context *user_data){
 
 Ecore_Timer* timer = NULL;
 void view1_start_stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
+	strncpy(appdata.userid, "subangkar", 31);
+	appdata.recording_duration=DATA_RECORDING_DURATION;
+	appdata.recording_interval=DATA_RECORDING_INTERVAL;
+
 	launch_service();
 	if(!timer)
 		timer = ecore_timer_loop_add(5, update_fileSize_info, vc);
