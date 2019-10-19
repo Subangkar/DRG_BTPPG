@@ -11,8 +11,8 @@
 				weight_v="1" padding_v="0" id="box1" padding_h="0" weight_h="1"
 				direction="vertical">
 				<label align_h="fill" wrap_width="0" align_v="fill" visible="true"
-					weight_v="1" line_wrap="none" id="hrm_data"
-					text="&lt;font=Tizen:style=Regular font_size=3&gt;hrm&lt;/font/&gt;"
+					weight_v="1" line_wrap="none" id="activity"
+					text="&lt;font=Tizen:style=Regular font_size=30&gt;Activity&lt;/font/&gt;"
 					weight_h="1" ellipsis="true"></label>
 				<label align_h="fill" wrap_width="0" align_v="fill" visible="true"
 					weight_v="1" line_wrap="none" id="ppg_green"
@@ -51,14 +51,19 @@
 					text="&lt;font=Tizen:style=Regular font_size=15&gt;FileInfo&lt;/font/&gt;"
 					weight_h="1" ellipsis="true"></label>
 				<button align_h="fill" align_v="fill" visible="true"
-					weight_v="0.06" disable="false" style="default" id="start_stop"
-					text="Start" weight_h="1">
-					<event function_name="view1_start_stop_onclicked" signal="clicked" />
+					weight_v="0.06" disable="false" style="default" id="upload" text="Upload"
+					weight_h="1">
+				<event function_name="upload_onclicked" signal="clicked" />
 				</button>
 				<button align_h="fill" align_v="fill" visible="true"
-					weight_v="0.06" disable="false" style="default" id="stop_button" text="Stop"
-					weight_h="1">
-					<event function_name="stop_onclicked" signal="clicked" />					
+					weight_v="0.06" disable="false" style="default" id="start_stop"
+					text="Start" weight_h="1">
+					<event function_name="start_onclicked" signal="clicked" />
+				</button>
+				<button align_h="fill" align_v="fill" visible="true"
+					weight_v="0.06" disable="false" style="default" id="stop_button"
+					text="Stop" weight_h="1">
+					<event function_name="stop_onclicked" signal="clicked" />
 				</button>
 			</box>
 		</view>

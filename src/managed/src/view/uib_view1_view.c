@@ -11,7 +11,8 @@
 
 
 /* event handler declarations */
-void view1_start_stop_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void upload_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void start_onclicked(uib_view1_view_context*, Evas_Object*, void*);
 void stop_onclicked(uib_view1_view_context*, Evas_Object*, void*);
 
 uib_view_context* uib_view_view1_create(Evas_Object* parent, void* create_callback_param) {
@@ -27,7 +28,8 @@ uib_view_context* uib_view_view1_create(Evas_Object* parent, void* create_callba
 	uib_views_get_instance()->set_targeted_view((uib_view_context*)vc);
 
 	//bind event handler
-	evas_object_smart_callback_add(vc->start_stop, "clicked", (Evas_Smart_Cb)view1_start_stop_onclicked, vc);
+	evas_object_smart_callback_add(vc->upload, "clicked", (Evas_Smart_Cb)upload_onclicked, vc);
+	evas_object_smart_callback_add(vc->start_stop, "clicked", (Evas_Smart_Cb)start_onclicked, vc);
 	evas_object_smart_callback_add(vc->stop_button, "clicked", (Evas_Smart_Cb)stop_onclicked, vc);
 
 
@@ -50,15 +52,15 @@ void uib_view1_config_SQUARE_320x320_portrait() {
 		elm_box_padding_set(vc->box1,0,0);
 		evas_object_size_hint_align_set(vc->box1, -1.0, -1.0);
 		evas_object_size_hint_weight_set(vc->box1, 1.0, 1.0);
-		if (!vc->hrm_data) {
-			vc->hrm_data = elm_label_add(vc->box1);
+		if (!vc->activity) {
+			vc->activity = elm_label_add(vc->box1);
 		}
-		if(vc->hrm_data) {
-			evas_object_size_hint_align_set(vc->hrm_data, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->hrm_data, 1.0, 1.0);			elm_object_text_set(vc->hrm_data,_UIB_LOCALE("<font=Tizen:style=Regular font_size=3>hrm</font/>"));
-			elm_label_line_wrap_set(vc->hrm_data, (Elm_Wrap_Type)ELM_WRAP_NONE);
-			elm_label_wrap_width_set(vc->hrm_data,0);
-			elm_label_ellipsis_set(vc->hrm_data, EINA_TRUE);
-			evas_object_show(vc->hrm_data);
+		if(vc->activity) {
+			evas_object_size_hint_align_set(vc->activity, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->activity, 1.0, 1.0);			elm_object_text_set(vc->activity,_UIB_LOCALE("<font=Tizen:style=Regular font_size=30>Activity</font/>"));
+			elm_label_line_wrap_set(vc->activity, (Elm_Wrap_Type)ELM_WRAP_NONE);
+			elm_label_wrap_width_set(vc->activity,0);
+			elm_label_ellipsis_set(vc->activity, EINA_TRUE);
+			evas_object_show(vc->activity);
 		}
 		if (!vc->ppg_green) {
 			vc->ppg_green = elm_label_add(vc->box1);
@@ -80,6 +82,14 @@ void uib_view1_config_SQUARE_320x320_portrait() {
 			elm_label_ellipsis_set(vc->file_size, EINA_TRUE);
 			evas_object_show(vc->file_size);
 		}
+		if (!vc->upload) {
+			vc->upload = elm_button_add(vc->box1);
+		}
+		if (vc->upload) {
+			evas_object_size_hint_align_set(vc->upload, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->upload, 1.0, .1);			elm_object_text_set(vc->upload,_UIB_LOCALE("Upload"));
+			elm_object_style_set(vc->upload,"default");
+			evas_object_show(vc->upload);
+		}
 		if (!vc->start_stop) {
 			vc->start_stop = elm_button_add(vc->box1);
 		}
@@ -96,9 +106,10 @@ void uib_view1_config_SQUARE_320x320_portrait() {
 			elm_object_style_set(vc->stop_button,"default");
 			evas_object_show(vc->stop_button);
 		}
-		elm_box_pack_end(vc->box1, vc->hrm_data);
+		elm_box_pack_end(vc->box1, vc->activity);
 		elm_box_pack_end(vc->box1, vc->ppg_green);
 		elm_box_pack_end(vc->box1, vc->file_size);
+		elm_box_pack_end(vc->box1, vc->upload);
 		elm_box_pack_end(vc->box1, vc->start_stop);
 		elm_box_pack_end(vc->box1, vc->stop_button);
 		evas_object_show(vc->box1);

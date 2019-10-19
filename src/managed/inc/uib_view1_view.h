@@ -33,9 +33,10 @@ typedef struct _uib_view1_view_context {
 
 	/* UI Components in this view */
 	Evas_Object *box1;
-	Evas_Object *hrm_data;
+	Evas_Object *activity;
 	Evas_Object *ppg_green;
 	Evas_Object *file_size;
+	Evas_Object *upload;
 	Evas_Object *start_stop;
 	Evas_Object *stop_button;
 } uib_view1_view_context;

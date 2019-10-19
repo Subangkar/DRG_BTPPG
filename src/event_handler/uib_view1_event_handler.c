@@ -12,6 +12,14 @@
 #include <sensor.h>
 #include <device/power.h>
 
+#include <curl/curl.h>
+#include <net_connection.h>
+
+// --------------------------------------- External Functions ---------------------------------------
+int uploadAllFiles(const char* dir);
+// --------------------------------------------------------------------------------------------------
+
+
 #define FONT_SIZE 20
 
 #define SERVICE_APP_NAME "org.example.rawsensordata"
@@ -109,6 +117,79 @@ static void stop_service()
 }
 
 
+/////////////////////////////////////////////////////////////////
+#include <activity_recognition.h>
+
+activity_h handles[ACTIVITY_IN_VEHICLE+1];
+activity_type_e current_activity = 0;
+
+#define FONT_SIZE 30
+
+void
+activity_callback(activity_type_e activity, const activity_data_h data,
+                          double timestamp, activity_error_e error, void *user_data);
+
+void activity_recognition_start(uib_view1_view_context *vc){
+	activity_create(&handles[ACTIVITY_STATIONARY]);
+	activity_start_recognition(handles[ACTIVITY_STATIONARY], ACTIVITY_STATIONARY, activity_callback, vc);
+	activity_create(&handles[ACTIVITY_WALK]);
+	activity_start_recognition(handles[ACTIVITY_WALK], ACTIVITY_WALK, activity_callback, vc);
+	activity_create(&handles[ACTIVITY_RUN]);
+	activity_start_recognition(handles[ACTIVITY_RUN], ACTIVITY_RUN, activity_callback, vc);
+	activity_create(&handles[ACTIVITY_IN_VEHICLE]);
+	activity_start_recognition(handles[ACTIVITY_IN_VEHICLE], ACTIVITY_IN_VEHICLE, activity_callback, vc);
+	dlog_print(DLOG_ERROR, LOG_TAG, ">>> activity_recognition_start called...");
+}
+
+void activity_callback(activity_type_e activity, const activity_data_h data,
+                          double timestamp, activity_error_e error, void *user_data)
+{
+	dlog_print(DLOG_ERROR, LOG_TAG, ">>> activity_callback called...");
+   int result;
+   activity_accuracy_e accuracy;
+
+   if (error != ACTIVITY_ERROR_NONE) {
+	   return;
+   }
+
+   result = activity_get_accuracy(data, &accuracy);
+
+   if (activity != current_activity) {
+		dlog_print(DLOG_ERROR, LOG_TAG, ">>> activity changed...");
+	   current_activity=activity;
+		char formatted_label[256];
+		switch (current_activity) {
+			case ACTIVITY_STATIONARY:
+				sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>Activity = %s </font/>", FONT_SIZE, "ACTIVITY_STATIONARY");
+				break;
+			case ACTIVITY_WALK:
+				sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>Activity = %s </font/>", FONT_SIZE, "ACTIVITY_WALK");
+				break;
+			case ACTIVITY_RUN:
+				sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>Activity = %s </font/>", FONT_SIZE, "ACTIVITY_RUN");
+				break;
+			case ACTIVITY_IN_VEHICLE:
+				sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>Activity = %s </font/>", FONT_SIZE, "ACTIVITY_IN_VEHICLE");
+				break;
+			default:
+				sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>Activity = %s </font/>", FONT_SIZE, "NONE");
+				break;
+		}
+		elm_object_text_set(((uib_view1_view_context*)user_data)->activity, formatted_label);
+
+   }
+}
+
+void activity_recognition_stop(){
+	for (int i = 0; i <= ACTIVITY_IN_VEHICLE; ++i) {
+	    activity_stop_recognition(handles[i]);
+	    // If the handle will not be used anymore, its resources needs be released explicitly.
+	    activity_release(handles[i]);
+	}
+}
+
+/////////////////////////////////////////////////////////////////
+
 char fsize[20];
 void update_fileSize_info(uib_view1_view_context *user_data){
 	char formatted_label[256];
@@ -116,12 +197,77 @@ void update_fileSize_info(uib_view1_view_context *user_data){
 	elm_object_text_set(user_data->file_size, formatted_label);
 }
 
+
+//int uploadFile(const char* filename, const char* url){
+//  dlog_print(DLOG_WARN, LOG_TAG, ">>> uploadFile...");
+//  CURL *curl;
+//  CURLcode res;
+//  struct stat file_info;
+//  curl_off_t speed_upload, total_time;
+//  FILE *fd;
+//
+//  fd = fopen(filename, "rb"); /* open file to upload */
+//  if(!fd)
+//    return 1; /* can't continue */
+//
+//  dlog_print(DLOG_WARN, LOG_TAG, ">>> starting to upload...");
+//  /* to get the file size */
+//  if(fstat(fileno(fd), &file_info) != 0)
+//    return 1; /* can't continue */
+//
+//  curl = curl_easy_init();
+//  if(curl) {
+//    /* upload to this place */
+//    curl_easy_setopt(curl, CURLOPT_URL, url);
+//
+//    /* tell it to "upload" to the URL */
+//    curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+//
+//    /* set where to read from (on Windows you need to use READFUNCTION too) */
+//    curl_easy_setopt(curl, CURLOPT_READDATA, fd);
+//
+//    /* and give the size of the upload (optional) */
+//    curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE,
+//                     (curl_off_t)file_info.st_size);
+//
+//    /* enable verbose for easier tracing */
+//    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+//
+//    res = curl_easy_perform(curl);
+//    dlog_print(DLOG_WARN, LOG_TAG, ">>> finishing upload...");
+//    /* Check for errors */
+//    if(res != CURLE_OK) {
+//      fprintf(stderr, "curl_easy_perform() failed: %s\n",
+//              curl_easy_strerror(res));
+//
+//    }
+////    else {
+//      /* now extract transfer info */
+////      curl_easy_getinfo(curl, CURLINFO_SPEED_UPLOAD, &speed_upload);
+// //     curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &total_time);
+//
+////      fprintf(stderr, "Speed: %" CURL_FORMAT_CURL_OFF_T " bytes/sec during %"
+////              CURL_FORMAT_CURL_OFF_T ".%06ld seconds\n",
+////              speed_upload,
+// //             (total_time / 1000000), (long)(total_time % 1000000));
+//
+//  //  }
+//    /* always cleanup */
+//    dlog_print(DLOG_WARN, LOG_TAG, ">>> cleanup upload...");
+//    curl_easy_cleanup(curl);
+//  }
+//  fclose(fd);
+//  return 0;
+//}
+//
+
+
 Ecore_Timer* timer = NULL;
-void view1_start_stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
+void start_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
 	strncpy(appdata.userid, "subangkar", 31);
 	appdata.recording_duration=DATA_RECORDING_DURATION;
 	appdata.recording_interval=DATA_RECORDING_INTERVAL;
-
+	activity_recognition_start(vc);
 	launch_service();
 	if(!timer)
 		timer = ecore_timer_loop_add(5, update_fileSize_info, vc);
@@ -135,5 +281,21 @@ void stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_in
 		ecore_timer_freeze(timer);
 		ecore_timer_reset(timer);
 	}
+}
+
+void upload_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info){
+	stop_service();
+	if(timer){
+		ecore_timer_freeze(timer);
+		ecore_timer_reset(timer);
+	}
+    dlog_print(DLOG_WARN, LOG_TAG, ">>> upload_onclicked...");
+//	char fpath[256];
+//	strcpy(fpath, app_get_data_path());
+//	strcat(fpath, "ppg_data.csv");
+//	uploadFile(fpath, "192.168.0.103:8000");
+	uploadAllFiles(app_get_data_path());
+    dlog_print(DLOG_WARN, LOG_TAG, ">>> upload done...");
+	start_onclicked(vc, obj, event_info);
 }
 
