@@ -19,7 +19,7 @@
 int uploadAllFiles(const char* dir);
 // --------------------------------------------------------------------------------------------------
 
-
+int is_running=0;
 #define FONT_SIZE 20
 
 #define SERVICE_APP_NAME "org.example.rawsensordata"
@@ -160,19 +160,19 @@ void activity_callback(activity_type_e activity, const activity_data_h data,
 		char formatted_label[256];
 		switch (current_activity) {
 			case ACTIVITY_STATIONARY:
-				sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>Activity = %s </font/>", FONT_SIZE, "ACTIVITY_STATIONARY");
+				sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%s </font/>", 17, "ACTIVITY_STATIONARY");
 				break;
 			case ACTIVITY_WALK:
-				sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>Activity = %s </font/>", FONT_SIZE, "ACTIVITY_WALK");
+				sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%s </font/>", 17, "ACTIVITY_WALK");
 				break;
 			case ACTIVITY_RUN:
-				sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>Activity = %s </font/>", FONT_SIZE, "ACTIVITY_RUN");
+				sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%s </font/>", 17, "ACTIVITY_RUN");
 				break;
 			case ACTIVITY_IN_VEHICLE:
-				sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>Activity = %s </font/>", FONT_SIZE, "ACTIVITY_IN_VEHICLE");
+				sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%s </font/>", 17, "ACTIVITY_IN_VEHICLE");
 				break;
 			default:
-				sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>Activity = %s </font/>", FONT_SIZE, "NONE");
+				sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%s </font/>", 17, "NONE");
 				break;
 		}
 		elm_object_text_set(((uib_view1_view_context*)user_data)->activity, formatted_label);
@@ -193,73 +193,9 @@ void activity_recognition_stop(){
 char fsize[20];
 void update_fileSize_info(uib_view1_view_context *user_data){
 	char formatted_label[256];
-	sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>fileSize = %s </font/>", FONT_SIZE, get_dataSize(fsize));
+	sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>DataSize = %s </font/>", FONT_SIZE, get_dataSize(fsize));
 	elm_object_text_set(user_data->file_size, formatted_label);
 }
-
-
-//int uploadFile(const char* filename, const char* url){
-//  dlog_print(DLOG_WARN, LOG_TAG, ">>> uploadFile...");
-//  CURL *curl;
-//  CURLcode res;
-//  struct stat file_info;
-//  curl_off_t speed_upload, total_time;
-//  FILE *fd;
-//
-//  fd = fopen(filename, "rb"); /* open file to upload */
-//  if(!fd)
-//    return 1; /* can't continue */
-//
-//  dlog_print(DLOG_WARN, LOG_TAG, ">>> starting to upload...");
-//  /* to get the file size */
-//  if(fstat(fileno(fd), &file_info) != 0)
-//    return 1; /* can't continue */
-//
-//  curl = curl_easy_init();
-//  if(curl) {
-//    /* upload to this place */
-//    curl_easy_setopt(curl, CURLOPT_URL, url);
-//
-//    /* tell it to "upload" to the URL */
-//    curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
-//
-//    /* set where to read from (on Windows you need to use READFUNCTION too) */
-//    curl_easy_setopt(curl, CURLOPT_READDATA, fd);
-//
-//    /* and give the size of the upload (optional) */
-//    curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE,
-//                     (curl_off_t)file_info.st_size);
-//
-//    /* enable verbose for easier tracing */
-//    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-//
-//    res = curl_easy_perform(curl);
-//    dlog_print(DLOG_WARN, LOG_TAG, ">>> finishing upload...");
-//    /* Check for errors */
-//    if(res != CURLE_OK) {
-//      fprintf(stderr, "curl_easy_perform() failed: %s\n",
-//              curl_easy_strerror(res));
-//
-//    }
-////    else {
-//      /* now extract transfer info */
-////      curl_easy_getinfo(curl, CURLINFO_SPEED_UPLOAD, &speed_upload);
-// //     curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &total_time);
-//
-////      fprintf(stderr, "Speed: %" CURL_FORMAT_CURL_OFF_T " bytes/sec during %"
-////              CURL_FORMAT_CURL_OFF_T ".%06ld seconds\n",
-////              speed_upload,
-// //             (total_time / 1000000), (long)(total_time % 1000000));
-//
-//  //  }
-//    /* always cleanup */
-//    dlog_print(DLOG_WARN, LOG_TAG, ">>> cleanup upload...");
-//    curl_easy_cleanup(curl);
-//  }
-//  fclose(fd);
-//  return 0;
-//}
-//
 
 
 Ecore_Timer* timer = NULL;
@@ -273,29 +209,39 @@ void start_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_i
 		timer = ecore_timer_loop_add(5, update_fileSize_info, vc);
 	else
 		ecore_timer_thaw(timer);
+	is_running=1;
 }
 
 void stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info){
 	stop_service();
+	activity_recognition_stop();
 	if(timer){
 		ecore_timer_freeze(timer);
 		ecore_timer_reset(timer);
 	}
+	is_running=0;
 }
 
 void upload_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info){
-	stop_service();
-	if(timer){
-		ecore_timer_freeze(timer);
-		ecore_timer_reset(timer);
+	int was_running=is_running;
+	if(was_running){
+		stop_service();
+		if(timer){
+			ecore_timer_freeze(timer);
+			ecore_timer_reset(timer);
+		}
 	}
     dlog_print(DLOG_WARN, LOG_TAG, ">>> upload_onclicked...");
-//	char fpath[256];
-//	strcpy(fpath, app_get_data_path());
-//	strcat(fpath, "ppg_data.csv");
-//	uploadFile(fpath, "192.168.0.103:8000");
 	uploadAllFiles(app_get_data_path());
     dlog_print(DLOG_WARN, LOG_TAG, ">>> upload done...");
-	start_onclicked(vc, obj, event_info);
+//	start_onclicked(vc, obj, event_info);
+    if(was_running){
+		launch_service();
+		if(!timer)
+			timer = ecore_timer_loop_add(5, update_fileSize_info, vc);
+		else
+			ecore_timer_thaw(timer);
+		is_running=1;
+    }
 }
 
