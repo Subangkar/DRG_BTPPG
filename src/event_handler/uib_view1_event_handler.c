@@ -22,6 +22,7 @@ int uploadAllFiles(const char* dir);
 int is_running=0;
 #define FONT_SIZE 20
 
+
 #define SERVICE_APP_NAME "org.example.rawsensordata"
 
 #define DATA_RECORDING_DURATION 10
@@ -35,17 +36,16 @@ typedef struct appdata_t{
 
 appdata_t appdata;
 
-unsigned long long get_fileSize(){
+const char* get_lastModified(char *lastModified){
 	char fpath[256];
-	strcpy(fpath, app_get_data_path());
-	strcat(fpath, "ppg_data.csv");
-	FILE* fp = fopen(fpath, "r");
+	sprintf(fpath, "stat -c %%y %s%s/ | cut -f 2 -d ' ' | cut -f 1 -d '.'", app_get_data_path(), "current");
+	FILE* fp = popen(fpath, "r");
 	if(fp) {
-		unsigned long long filesize = ftell(fp);
-		fclose(fp);
-		return filesize;
+		fscanf(fp, "%s", lastModified);
+		pclose(fp);
+		return lastModified;
 	}
-	return -1;
+	return NULL;
 }
 
 const char* get_dataSize(char *fsize){
@@ -117,93 +117,31 @@ static void stop_service()
 }
 
 
-/////////////////////////////////////////////////////////////////
-#include <activity_recognition.h>
-
-activity_h handles[ACTIVITY_IN_VEHICLE+1];
-activity_type_e current_activity = 0;
-
-#define FONT_SIZE 30
-
-void
-activity_callback(activity_type_e activity, const activity_data_h data,
-                          double timestamp, activity_error_e error, void *user_data);
-
-void activity_recognition_start(uib_view1_view_context *vc){
-	activity_create(&handles[ACTIVITY_STATIONARY]);
-	activity_start_recognition(handles[ACTIVITY_STATIONARY], ACTIVITY_STATIONARY, activity_callback, vc);
-	activity_create(&handles[ACTIVITY_WALK]);
-	activity_start_recognition(handles[ACTIVITY_WALK], ACTIVITY_WALK, activity_callback, vc);
-	activity_create(&handles[ACTIVITY_RUN]);
-	activity_start_recognition(handles[ACTIVITY_RUN], ACTIVITY_RUN, activity_callback, vc);
-	activity_create(&handles[ACTIVITY_IN_VEHICLE]);
-	activity_start_recognition(handles[ACTIVITY_IN_VEHICLE], ACTIVITY_IN_VEHICLE, activity_callback, vc);
-	dlog_print(DLOG_ERROR, LOG_TAG, ">>> activity_recognition_start called...");
-}
-
-void activity_callback(activity_type_e activity, const activity_data_h data,
-                          double timestamp, activity_error_e error, void *user_data)
-{
-	dlog_print(DLOG_ERROR, LOG_TAG, ">>> activity_callback called...");
-   int result;
-   activity_accuracy_e accuracy;
-
-   if (error != ACTIVITY_ERROR_NONE) {
-	   return;
-   }
-
-   result = activity_get_accuracy(data, &accuracy);
-
-   if (activity != current_activity) {
-		dlog_print(DLOG_ERROR, LOG_TAG, ">>> activity changed...");
-	   current_activity=activity;
-		char formatted_label[256];
-		switch (current_activity) {
-			case ACTIVITY_STATIONARY:
-				sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%s </font/>", 17, "ACTIVITY_STATIONARY");
-				break;
-			case ACTIVITY_WALK:
-				sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%s </font/>", 17, "ACTIVITY_WALK");
-				break;
-			case ACTIVITY_RUN:
-				sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%s </font/>", 17, "ACTIVITY_RUN");
-				break;
-			case ACTIVITY_IN_VEHICLE:
-				sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%s </font/>", 17, "ACTIVITY_IN_VEHICLE");
-				break;
-			default:
-				sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%s </font/>", 17, "NONE");
-				break;
-		}
-		elm_object_text_set(((uib_view1_view_context*)user_data)->activity, formatted_label);
-
-   }
-}
-
-void activity_recognition_stop(){
-	for (int i = 0; i <= ACTIVITY_IN_VEHICLE; ++i) {
-	    activity_stop_recognition(handles[i]);
-	    // If the handle will not be used anymore, its resources needs be released explicitly.
-	    activity_release(handles[i]);
-	}
-}
-
-/////////////////////////////////////////////////////////////////
-
+char last_modified[256];
 char fsize[20];
-void update_fileSize_info(uib_view1_view_context *user_data){
+Eina_Bool update_fileSize_info(void *user_data){
 	char formatted_label[256];
 	sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>DataSize = %s </font/>", FONT_SIZE, get_dataSize(fsize));
-	elm_object_text_set(user_data->file_size, formatted_label);
+	elm_object_text_set(((uib_view1_view_context*)user_data)->file_size, formatted_label);
+
+	sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%s </font/>", 15, get_lastModified(last_modified));
+	elm_object_text_set(((uib_view1_view_context*)user_data)->activity, formatted_label);
+	return ECORE_CALLBACK_RENEW;
 }
 
+Ecore_Timer* upload_timer=NULL;
+Eina_Bool upload_data(void *user_data){
+	uploadAllFiles(app_get_data_path());
+    dlog_print(DLOG_WARN, LOG_TAG, ">>> upload done...");
+    upload_timer=NULL;
+    return ECORE_CALLBACK_CANCEL;
+}
 
 Ecore_Timer* timer = NULL;
 void start_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
 	strncpy(appdata.userid, "subangkar", 31);
 	appdata.recording_duration=DATA_RECORDING_DURATION;
 	appdata.recording_interval=DATA_RECORDING_INTERVAL;
-	activity_recognition_start(vc);
 	launch_service();
 	if(!timer)
 		timer = ecore_timer_loop_add(5, update_fileSize_info, vc);
@@ -214,7 +152,6 @@ void start_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_i
 
 void stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info){
 	stop_service();
-	activity_recognition_stop();
 	if(timer){
 		ecore_timer_freeze(timer);
 		ecore_timer_reset(timer);
@@ -223,25 +160,28 @@ void stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_in
 }
 
 void upload_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info){
-	int was_running=is_running;
-	if(was_running){
-		stop_service();
-		if(timer){
-			ecore_timer_freeze(timer);
-			ecore_timer_reset(timer);
-		}
-	}
+//	int was_running=is_running;
+//	if(was_running){
+//		stop_service();
+//		if(timer){
+//			ecore_timer_freeze(timer);
+//			ecore_timer_reset(timer);
+//		}
+//	}
     dlog_print(DLOG_WARN, LOG_TAG, ">>> upload_onclicked...");
-	uploadAllFiles(app_get_data_path());
-    dlog_print(DLOG_WARN, LOG_TAG, ">>> upload done...");
+	if(!upload_timer)
+		upload_timer = ecore_timer_loop_add(2, upload_data, vc);
+	else
+		ecore_timer_thaw(upload_timer);
+//	uploadAllFiles(app_get_data_path());
 //	start_onclicked(vc, obj, event_info);
-    if(was_running){
-		launch_service();
-		if(!timer)
-			timer = ecore_timer_loop_add(5, update_fileSize_info, vc);
-		else
-			ecore_timer_thaw(timer);
-		is_running=1;
-    }
+//    if(was_running){
+//		launch_service();
+//		if(!timer)
+//			timer = ecore_timer_loop_add(5, update_fileSize_info, vc);
+//		else
+//			ecore_timer_thaw(timer);
+//		is_running=1;
+//    }
 }
 
