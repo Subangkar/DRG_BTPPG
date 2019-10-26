@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<manifest xmlns="http://tizen.org/ns/packages" api-version="2.3.1" package="org.example.drgbtppg" version="1.0.0">
+<manifest xmlns="http://tizen.org/ns/packages" api-version="2.3.2" package="org.example.drgbtppg" version="1.0.0">
     <author email="taoyil@uci.edu" href="https://duttgroup.ics.uci.edu/">Tao-Yi Lee</author>
     <profile name="wearable"/>
     <ui-application appid="org.example.drgbtppg" exec="drgbtppg" multiple="false" nodisplay="false" taskmanage="true" type="capp">
@@ -7,14 +7,16 @@
         <icon>admin-ajax.php.png</icon>
         <metadata key="http://tizen.org/metadata/background-category/background-network"/>
         <metadata key="http://tizen.org/metadata/background-category/sensor"/>
+        <metadata key="http://tizen.org/metadata/background-category/location"/>
     </ui-application>
     <privileges>
+        <privilege>http://tizen.org/privilege/network.get</privilege>
         <privilege>http://tizen.org/privilege/healthinfo</privilege>
         <privilege>http://tizen.org/privilege/appmanager.launch</privilege>
-        <privilege>http://tizen.org/privilege/location</privilege>
         <privilege>http://tizen.org/privilege/bluetooth</privilege>
         <privilege>http://tizen.org/privilege/internet</privilege>
         <privilege>http://tizen.org/privilege/display</privilege>
-        <privilege>http://tizen.org/privilege/packagemanager.info</privilege>
+        <privilege>http://tizen.org/privilege/network.profile</privilege>
+        <privilege>http://tizen.org/privilege/power</privilege>
     </privileges>
 </manifest>
