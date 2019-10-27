@@ -56,21 +56,11 @@ void uib_view1_config_SQUARE_320x320_portrait() {
 			vc->activity = elm_label_add(vc->box1);
 		}
 		if(vc->activity) {
-			evas_object_size_hint_align_set(vc->activity, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->activity, 1.0, 1.0);			elm_object_text_set(vc->activity,_UIB_LOCALE("<font=Tizen:style=Regular font_size=30>Activity</font/>"));
+			evas_object_size_hint_align_set(vc->activity, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->activity, 1.0, 1.0);			elm_object_text_set(vc->activity,_UIB_LOCALE("<font=Tizen:style=Regular font_size=30>STOPPED</font/>"));
 			elm_label_line_wrap_set(vc->activity, (Elm_Wrap_Type)ELM_WRAP_NONE);
 			elm_label_wrap_width_set(vc->activity,0);
 			elm_label_ellipsis_set(vc->activity, EINA_TRUE);
 			evas_object_show(vc->activity);
-		}
-		if (!vc->ppg_green) {
-			vc->ppg_green = elm_label_add(vc->box1);
-		}
-		if(vc->ppg_green) {
-			evas_object_size_hint_align_set(vc->ppg_green, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->ppg_green, 1.0, 1.0);			elm_object_text_set(vc->ppg_green,_UIB_LOCALE("<font=Tizen:style=Regular font_size=3>ppg</font/>"));
-			elm_label_line_wrap_set(vc->ppg_green, (Elm_Wrap_Type)ELM_WRAP_NONE);
-			elm_label_wrap_width_set(vc->ppg_green,0);
-			elm_label_ellipsis_set(vc->ppg_green, EINA_TRUE);
-			evas_object_show(vc->ppg_green);
 		}
 		if (!vc->file_size) {
 			vc->file_size = elm_label_add(vc->box1);
@@ -107,7 +97,6 @@ void uib_view1_config_SQUARE_320x320_portrait() {
 			evas_object_show(vc->stop_button);
 		}
 		elm_box_pack_end(vc->box1, vc->activity);
-		elm_box_pack_end(vc->box1, vc->ppg_green);
 		elm_box_pack_end(vc->box1, vc->file_size);
 		elm_box_pack_end(vc->box1, vc->upload);
 		elm_box_pack_end(vc->box1, vc->start_stop);

@@ -12,13 +12,13 @@
 				direction="vertical">
 				<label align_h="fill" wrap_width="0" align_v="fill" visible="true"
 					weight_v="1" line_wrap="none" id="activity"
-					text="&lt;font=Tizen:style=Regular font_size=30&gt;Activity&lt;/font/&gt;"
+					text="&lt;font=Tizen:style=Regular font_size=30&gt;STOPPED&lt;/font/&gt;"
 					weight_h="1" ellipsis="true"></label>
-				<label align_h="fill" wrap_width="0" align_v="fill" visible="true"
+				<!-- <label align_h="fill" wrap_width="0" align_v="fill" visible="true"
 					weight_v="1" line_wrap="none" id="ppg_green"
 					text="&lt;font=Tizen:style=Regular font_size=3&gt;ppg&lt;/font/&gt;"
 					weight_h="1" ellipsis="true"></label>
-				<!-- <label align_h="fill" wrap_width="0" align_v="fill" visible="true" 
+					<label align_h="fill" wrap_width="0" align_v="fill" visible="true" 
 					weight_v="1" line_wrap="none" id="accel_x" text="&lt;font=Tizen:style=Regular 
 					font_size=3&gt;accel_x&lt;/font/&gt;" weight_h="1" ellipsis="true"></label> 
 					<label align_h="fill" wrap_width="0" align_v="fill" visible="true" weight_v="1" 
@@ -53,7 +53,7 @@
 				<button align_h="fill" align_v="fill" visible="true"
 					weight_v="0.06" disable="false" style="default" id="upload" text="Upload"
 					weight_h="1">
-				<event function_name="upload_onclicked" signal="clicked" />
+					<event function_name="upload_onclicked" signal="clicked" />
 				</button>
 				<button align_h="fill" align_v="fill" visible="true"
 					weight_v="0.06" disable="false" style="default" id="start_stop"
