@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-#define SERVER_URL "http://192.168.0.103:8000/"
+#define SERVER_URL "http://192.168.0.103:8000/data/"
 #define CURL_MAX_TRANS_TIME 60L
 #define CURL_MAX_CONNECT_TIME 10L
 
