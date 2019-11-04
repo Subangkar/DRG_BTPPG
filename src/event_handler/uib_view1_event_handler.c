@@ -124,7 +124,7 @@ Eina_Bool update_fileSize_info(void *user_data){
 	sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>DataSize = %s </font/>", FONT_SIZE, get_dataSize(fsize));
 	elm_object_text_set(((uib_view1_view_context*)user_data)->file_size, formatted_label);
 
-	sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%s </font/>", 15, get_lastModified(last_modified));
+	sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%s </font/>", FONT_SIZE, get_lastModified(last_modified));
 	elm_object_text_set(((uib_view1_view_context*)user_data)->activity, formatted_label);
 	return ECORE_CALLBACK_RENEW;
 }
@@ -157,6 +157,9 @@ void stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_in
 		ecore_timer_reset(timer);
 	}
 	is_running=0;
+	char formatted_label[256];
+	sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%s </font/>", FONT_SIZE, "STOPPED");
+	elm_object_text_set(((uib_view1_view_context*)vc)->activity, formatted_label);
 }
 
 void upload_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info){
@@ -183,5 +186,8 @@ void upload_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_
 //			ecore_timer_thaw(timer);
 //		is_running=1;
 //    }
+	char formatted_label[256];
+	sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>DataSize = %s </font/>", FONT_SIZE, get_dataSize(fsize));
+	elm_object_text_set(((uib_view1_view_context*)vc)->file_size, formatted_label);
 }
 
