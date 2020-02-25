@@ -11,9 +11,9 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-#define SERVER_URL "http://192.168.0.103:8000/data/"
+#define SERVER_URL "http://hr-logger.herokuapp.com/data/" // "http://192.168.0.100:8000/data/"
 #define CURL_MAX_TRANS_TIME 60L
-#define CURL_MAX_CONNECT_TIME 10L
+#define CURL_MAX_CONNECT_TIME 20L
 
 // returns 0 for success
 int uploadFile(const char *server_url, const char *filename, const char* filePath)
