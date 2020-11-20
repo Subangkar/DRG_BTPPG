@@ -21,6 +21,7 @@
 // --------------------------------------- External Functions ---------------------------------------
 int uploadAllFiles(const char* dir);
 int download_config_file(const char* dir);
+void trim(char*);
 // --------------------------------------------------------------------------------------------------
 
 int is_running=0;
@@ -39,6 +40,9 @@ typedef struct appdata_t{
 } appdata_t;
 
 appdata_t appdata;
+
+char user_id[256] = "None";
+
 
 const char* get_lastModified(char *lastModified){
 	char fpath[256];
@@ -167,32 +171,21 @@ void stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_in
 }
 
 void upload_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info){
-//	int was_running=is_running;
-//	if(was_running){
-//		stop_service();
-//		if(timer){
-//			ecore_timer_freeze(timer);
-//			ecore_timer_reset(timer);
-//		}
-//	}
     dlog_print(DLOG_WARN, LOG_TAG, ">>> upload_onclicked...");
 	if(!upload_timer)
 		upload_timer = ecore_timer_loop_add(2, upload_data, vc);
 	else
 		ecore_timer_thaw(upload_timer);
-//	uploadAllFiles(app_get_data_path());
-//	start_onclicked(vc, obj, event_info);
-//    if(was_running){
-//		launch_service();
-//		if(!timer)
-//			timer = ecore_timer_loop_add(5, update_fileSize_info, vc);
-//		else
-//			ecore_timer_thaw(timer);
-//		is_running=1;
-//    }
 	char formatted_label[256];
 	sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>DataSize = %s </font/>", FONT_SIZE, get_dataSize(fsize));
 	elm_object_text_set(((uib_view1_view_context*)vc)->file_size, formatted_label);
+}
+
+
+void reset_stored_data(char* dir){
+	char cmd[256];
+    sprintf(cmd, "find %s -maxdepth 1 -type f -name '*.csv' -exec rm -r {} \\;", dir);
+    system(cmd);
 }
 
 
@@ -212,6 +205,7 @@ int get_id_from_config(char* config_dir, char* id){
 	}
 	fgets(id,100,config_file);
 	fclose(config_file);
+	trim(id);
 	if(!strlen(id)) return 0;
 	return 1;
 }
@@ -219,22 +213,27 @@ int get_id_from_config(char* config_dir, char* id){
 void load_profile_id_to_screen(uib_view1_view_context *vc){
 	char id[256];
 	if(get_id_from_config(app_get_data_path(), id)){
-		dlog_print(DLOG_WARN, LOG_TAG, "Read id: %s", id);
+		dlog_print(DLOG_INFO, LOG_TAG, "Read id: %s", id);
 	}
 	else{
 		// int error = system_info_get_platform_string("http://tizen.org/system/tizenid", id);
 		strcpy(id, "None");
 	}
-	char formatted_label[256];
-	sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>Profile = %s </font/>", FONT_SIZE, id);
-	elm_object_text_set(((uib_view1_view_context*)vc)->profile_id, formatted_label);
+	if (strcmp(id, user_id)){
+		strcpy(user_id, id);
+		stop_service();
+		char formatted_label[256];
+		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>Profile = %s </font/>", FONT_SIZE, user_id);
+		elm_object_text_set(((uib_view1_view_context*)vc)->profile_id, formatted_label);
+		reset_stored_data(app_get_data_path());
+	}
 }
 
 void fetch_profile_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info){
 	if(!download_config_file(app_get_data_path()))	{
-		dlog_print(DLOG_WARN, LOG_TAG, "Downloaded Config");
+		dlog_print(DLOG_INFO, LOG_TAG, "Downloaded Config");
 		load_profile_id_to_screen(vc);
 	}
 	else
-		dlog_print(DLOG_WARN, LOG_TAG, "Config Fetch Failed");
+		dlog_print(DLOG_ERROR, LOG_TAG, "Config Fetch Failed");
 }

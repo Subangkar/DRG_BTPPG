@@ -78,7 +78,7 @@ void uib_view1_config_SQUARE_320x320_portrait() {
 			vc->profile_id = elm_label_add(vc->box1);
 		}
 		if(vc->profile_id) {
-			evas_object_size_hint_align_set(vc->profile_id, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->profile_id, 1.0, 1.0);			elm_object_text_set(vc->profile_id,_UIB_LOCALE("<font=Tizen:style=Regular font_size=15>Profile:</font/>"));
+			evas_object_size_hint_align_set(vc->profile_id, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->profile_id, 1.0, 1.0);			elm_object_text_set(vc->profile_id,_UIB_LOCALE("<font=Tizen:style=Regular font_size=15>Profile: None</font/>"));
 			elm_label_line_wrap_set(vc->profile_id, (Elm_Wrap_Type)ELM_WRAP_NONE);
 			elm_label_wrap_width_set(vc->profile_id,0);
 			elm_label_ellipsis_set(vc->profile_id, EINA_TRUE);

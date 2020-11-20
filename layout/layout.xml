@@ -51,7 +51,7 @@
 					weight_h="1" ellipsis="true"></label>
 				<label align_h="fill" wrap_width="0" align_v="fill" visible="true"
 					weight_v="1" line_wrap="none" id="profile_id"
-					text="&lt;font=Tizen:style=Regular font_size=15&gt;Profile:&lt;/font/&gt;"
+					text="&lt;font=Tizen:style=Regular font_size=15&gt;Profile: None&lt;/font/&gt;"
 					weight_h="1" ellipsis="true"></label>
 				<button align_h="fill" align_v="fill" visible="true"
 					weight_v="0.06" disable="false" style="default" id="fetch_profile"
