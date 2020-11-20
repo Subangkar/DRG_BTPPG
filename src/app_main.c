@@ -2,10 +2,17 @@
 #include "uib_app_manager.h"
 #include <bluetooth.h>
 
+#include "uib_views.h"
+#include "uib_views_inc.h"
+
+
 #include <dlog.h>
 #include <glib.h> /* For GList */
 #define DRG_LOG_TAG "DRG"
 
+
+// ------------ External functions ------------------
+void load_profile_id_to_screen();
 
 /* app event callbacks */
 static bool _on_create_cb(void *user_data);
@@ -163,6 +170,9 @@ static bool _on_create_cb(void *user_data)
 
 	app_manager->initialize();
 
+	uib_view1_view_context* vc = (uib_view1_view_context*)app_manager->find_view_context("view1");
+	load_profile_id_to_screen(vc);
+	
 	bt_error_e ret;
 
 	ret = bt_initialize();

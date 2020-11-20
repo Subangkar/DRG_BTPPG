@@ -11,6 +11,7 @@
 
 
 /* event handler declarations */
+void fetch_profile_onclicked(uib_view1_view_context*, Evas_Object*, void*);
 void upload_onclicked(uib_view1_view_context*, Evas_Object*, void*);
 void start_onclicked(uib_view1_view_context*, Evas_Object*, void*);
 void stop_onclicked(uib_view1_view_context*, Evas_Object*, void*);
@@ -28,6 +29,7 @@ uib_view_context* uib_view_view1_create(Evas_Object* parent, void* create_callba
 	uib_views_get_instance()->set_targeted_view((uib_view_context*)vc);
 
 	//bind event handler
+	evas_object_smart_callback_add(vc->fetch_profile, "clicked", (Evas_Smart_Cb)fetch_profile_onclicked, vc);
 	evas_object_smart_callback_add(vc->upload, "clicked", (Evas_Smart_Cb)upload_onclicked, vc);
 	evas_object_smart_callback_add(vc->start_stop, "clicked", (Evas_Smart_Cb)start_onclicked, vc);
 	evas_object_smart_callback_add(vc->stop_button, "clicked", (Evas_Smart_Cb)stop_onclicked, vc);
@@ -72,6 +74,24 @@ void uib_view1_config_SQUARE_320x320_portrait() {
 			elm_label_ellipsis_set(vc->file_size, EINA_TRUE);
 			evas_object_show(vc->file_size);
 		}
+		if (!vc->profile_id) {
+			vc->profile_id = elm_label_add(vc->box1);
+		}
+		if(vc->profile_id) {
+			evas_object_size_hint_align_set(vc->profile_id, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->profile_id, 1.0, 1.0);			elm_object_text_set(vc->profile_id,_UIB_LOCALE("<font=Tizen:style=Regular font_size=15>Profile:</font/>"));
+			elm_label_line_wrap_set(vc->profile_id, (Elm_Wrap_Type)ELM_WRAP_NONE);
+			elm_label_wrap_width_set(vc->profile_id,0);
+			elm_label_ellipsis_set(vc->profile_id, EINA_TRUE);
+			evas_object_show(vc->profile_id);
+		}
+		if (!vc->fetch_profile) {
+			vc->fetch_profile = elm_button_add(vc->box1);
+		}
+		if (vc->fetch_profile) {
+			evas_object_size_hint_align_set(vc->fetch_profile, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->fetch_profile, 1.0, .1);			elm_object_text_set(vc->fetch_profile,_UIB_LOCALE("Load Profile"));
+			elm_object_style_set(vc->fetch_profile,"default");
+			evas_object_show(vc->fetch_profile);
+		}
 		if (!vc->upload) {
 			vc->upload = elm_button_add(vc->box1);
 		}
@@ -98,6 +118,8 @@ void uib_view1_config_SQUARE_320x320_portrait() {
 		}
 		elm_box_pack_end(vc->box1, vc->activity);
 		elm_box_pack_end(vc->box1, vc->file_size);
+		elm_box_pack_end(vc->box1, vc->profile_id);
+		elm_box_pack_end(vc->box1, vc->fetch_profile);
 		elm_box_pack_end(vc->box1, vc->upload);
 		elm_box_pack_end(vc->box1, vc->start_stop);
 		elm_box_pack_end(vc->box1, vc->stop_button);

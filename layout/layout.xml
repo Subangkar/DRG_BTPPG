@@ -14,15 +14,14 @@
 					weight_v="1" line_wrap="none" id="activity"
 					text="&lt;font=Tizen:style=Regular font_size=30&gt;STOPPED&lt;/font/&gt;"
 					weight_h="1" ellipsis="true"></label>
-				<!-- <label align_h="fill" wrap_width="0" align_v="fill" visible="true"
-					weight_v="1" line_wrap="none" id="ppg_green"
-					text="&lt;font=Tizen:style=Regular font_size=3&gt;ppg&lt;/font/&gt;"
-					weight_h="1" ellipsis="true"></label>
-					<label align_h="fill" wrap_width="0" align_v="fill" visible="true" 
-					weight_v="1" line_wrap="none" id="accel_x" text="&lt;font=Tizen:style=Regular 
-					font_size=3&gt;accel_x&lt;/font/&gt;" weight_h="1" ellipsis="true"></label> 
-					<label align_h="fill" wrap_width="0" align_v="fill" visible="true" weight_v="1" 
-					line_wrap="none" id="accel_y" text="&lt;font=Tizen:style=Regular font_size=3&gt;accel_y&lt;/font/&gt;" 
+				<!-- <label align_h="fill" wrap_width="0" align_v="fill" visible="true" 
+					weight_v="1" line_wrap="none" id="ppg_green" text="&lt;font=Tizen:style=Regular 
+					font_size=3&gt;ppg&lt;/font/&gt;" weight_h="1" ellipsis="true"></label> <label 
+					align_h="fill" wrap_width="0" align_v="fill" visible="true" weight_v="1" 
+					line_wrap="none" id="accel_x" text="&lt;font=Tizen:style=Regular font_size=3&gt;accel_x&lt;/font/&gt;" 
+					weight_h="1" ellipsis="true"></label> <label align_h="fill" wrap_width="0" 
+					align_v="fill" visible="true" weight_v="1" line_wrap="none" id="accel_y" 
+					text="&lt;font=Tizen:style=Regular font_size=3&gt;accel_y&lt;/font/&gt;" 
 					weight_h="1" ellipsis="true"></label> <label align_h="fill" wrap_width="0" 
 					align_v="fill" visible="true" weight_v="1" line_wrap="none" id="accel_z" 
 					text="&lt;font=Tizen:style=Regular font_size=3&gt;accel_z&lt;/font/&gt;" 
@@ -50,6 +49,15 @@
 					weight_v="1" line_wrap="none" id="file_size"
 					text="&lt;font=Tizen:style=Regular font_size=15&gt;FileInfo&lt;/font/&gt;"
 					weight_h="1" ellipsis="true"></label>
+				<label align_h="fill" wrap_width="0" align_v="fill" visible="true"
+					weight_v="1" line_wrap="none" id="profile_id"
+					text="&lt;font=Tizen:style=Regular font_size=15&gt;Profile:&lt;/font/&gt;"
+					weight_h="1" ellipsis="true"></label>
+				<button align_h="fill" align_v="fill" visible="true"
+					weight_v="0.06" disable="false" style="default" id="fetch_profile"
+					text="Load Profile" weight_h="1">
+					<event function_name="fetch_profile_onclicked" signal="clicked" />
+				</button>
 				<button align_h="fill" align_v="fill" visible="true"
 					weight_v="0.06" disable="false" style="default" id="upload" text="Upload"
 					weight_h="1">

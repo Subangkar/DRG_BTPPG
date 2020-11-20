@@ -35,6 +35,8 @@ typedef struct _uib_view1_view_context {
 	Evas_Object *box1;
 	Evas_Object *activity;
 	Evas_Object *file_size;
+	Evas_Object *profile_id;
+	Evas_Object *fetch_profile;
 	Evas_Object *upload;
 	Evas_Object *start_stop;
 	Evas_Object *stop_button;

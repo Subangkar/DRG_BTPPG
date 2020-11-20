@@ -15,8 +15,12 @@
 #include <curl/curl.h>
 #include <net_connection.h>
 
+#include <system_info.h>
+
+
 // --------------------------------------- External Functions ---------------------------------------
 int uploadAllFiles(const char* dir);
+int download_config_file(const char* dir);
 // --------------------------------------------------------------------------------------------------
 
 int is_running=0;
@@ -191,3 +195,46 @@ void upload_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_
 	elm_object_text_set(((uib_view1_view_context*)vc)->file_size, formatted_label);
 }
 
+
+int get_id_from_config(char* config_dir, char* id){
+	char filePath[256];
+	strcpy(filePath, config_dir);
+	if(filePath[strlen(filePath)-1]!='/'){
+	strcat(filePath, "/");
+	}
+	int pathSize = strlen(filePath);
+	char* filename = "config.json";
+	strcpy(filePath+pathSize, filename);
+	FILE *config_file = fopen(filePath, "r");
+	if(!config_file){
+		dlog_print(DLOG_ERROR, LOG_TAG, "Failed to open file: %s", filePath);
+		return 0;
+	}
+	fgets(id,100,config_file);
+	fclose(config_file);
+	if(!strlen(id)) return 0;
+	return 1;
+}
+
+void load_profile_id_to_screen(uib_view1_view_context *vc){
+	char id[256];
+	if(get_id_from_config(app_get_data_path(), id)){
+		dlog_print(DLOG_WARN, LOG_TAG, "Read id: %s", id);
+	}
+	else{
+		// int error = system_info_get_platform_string("http://tizen.org/system/tizenid", id);
+		strcpy(id, "None");
+	}
+	char formatted_label[256];
+	sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>Profile = %s </font/>", FONT_SIZE, id);
+	elm_object_text_set(((uib_view1_view_context*)vc)->profile_id, formatted_label);
+}
+
+void fetch_profile_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info){
+	if(!download_config_file(app_get_data_path()))	{
+		dlog_print(DLOG_WARN, LOG_TAG, "Downloaded Config");
+		load_profile_id_to_screen(vc);
+	}
+	else
+		dlog_print(DLOG_WARN, LOG_TAG, "Config Fetch Failed");
+}
