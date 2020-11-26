@@ -11,6 +11,7 @@
 #include "sensor_params.h"
 #include <sensor.h>
 #include <device/power.h>
+#include <app_manager.h>
 
 #include <time.h>
 
@@ -26,7 +27,6 @@ int download_config_file(const char* dir);
 void trim(char*);
 // --------------------------------------------------------------------------------------------------
 
-int is_running=0;
 #define FONT_SIZE 20
 #define PROFILE_RESET_N_REQ 5
 #define PROFILE_RESET_LAST_TIMELIMIT 30
@@ -72,10 +72,19 @@ const char* get_dataSize(char *fsize){
 	return NULL;
 }
 
+int is_app_running(const char* app_id){
+	int running=0;
+	if(app_manager_is_running (app_id, &running) == APP_MANAGER_ERROR_NONE)
+		dlog_print(DLOG_INFO, LOG_TAG, ">>> app %s is running:%d\n", app_id, running);
+	else
+		dlog_print(DLOG_ERROR, LOG_TAG, ">>> app %s error in retrieving running status\n", app_id);
+	return running;
+}
+
 static void launch_service()
 {
-	if(is_running) return;
-	dlog_print(DLOG_ERROR, LOG_TAG, ">>> launch_service called...");
+	dlog_print(DLOG_WARN, LOG_TAG, ">>> launch_service called...");
+	if(is_app_running(SERVICE_APP_NAME)) return;
 	app_control_h app_control = NULL;
 	if (app_control_create(&app_control)== APP_CONTROL_ERROR_NONE)
 	{
@@ -83,7 +92,6 @@ static void launch_service()
 			&& (app_control_send_launch_request(app_control, NULL, &appdata) == APP_CONTROL_ERROR_NONE))
 		{
 			dlog_print(DLOG_INFO, LOG_TAG, "App launch request sent!");
-			is_running=1;
 		}
 		else
 		{
@@ -104,8 +112,8 @@ static void launch_service()
 
 static void stop_service()
 {
-	if(!is_running) return;
-	dlog_print(DLOG_ERROR, LOG_TAG, ">>> stop_service called...");
+	dlog_print(DLOG_WARN, LOG_TAG, ">>> stop_service called...");
+	if(!is_app_running(SERVICE_APP_NAME)) return;
 	app_control_h app_control = NULL;
 	if (app_control_create(&app_control)== APP_CONTROL_ERROR_NONE)
 	{
@@ -114,7 +122,6 @@ static void stop_service()
 			&& (app_control_send_launch_request(app_control, NULL, &appdata) == APP_CONTROL_ERROR_NONE))
 		{
 			dlog_print(DLOG_INFO, LOG_TAG, "App stop request sent!");
-			is_running=0;
 		}
 		else
 		{
