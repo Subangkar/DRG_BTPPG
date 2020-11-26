@@ -12,6 +12,8 @@
 #include <sensor.h>
 #include <device/power.h>
 
+#include <time.h>
+
 #include <curl/curl.h>
 #include <net_connection.h>
 
@@ -26,6 +28,8 @@ void trim(char*);
 
 int is_running=0;
 #define FONT_SIZE 20
+#define PROFILE_RESET_N_REQ 5
+#define PROFILE_RESET_LAST_TIMELIMIT 30
 
 
 #define SERVICE_APP_NAME "org.example.rawsensordata"
@@ -210,30 +214,99 @@ int get_id_from_config(char* config_dir, char* id){
 	return 1;
 }
 
-void load_profile_id_to_screen(uib_view1_view_context *vc){
-	char id[256];
-	if(get_id_from_config(app_get_data_path(), id)){
-		dlog_print(DLOG_INFO, LOG_TAG, "Read id: %s", id);
-	}
-	else{
-		// int error = system_info_get_platform_string("http://tizen.org/system/tizenid", id);
-		strcpy(id, "None");
-	}
-	if (strcmp(id, user_id)){
-		strcpy(user_id, id);
-		stop_service();
-		char formatted_label[256];
-		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>Profile = %s </font/>", FONT_SIZE, user_id);
-		elm_object_text_set(((uib_view1_view_context*)vc)->profile_id, formatted_label);
-		reset_stored_data(app_get_data_path());
-	}
+char *tizenId;
+char* load_TizenId()
+{    
+    int ret;
+
+    ret = system_info_get_platform_string("http://tizen.org/system/tizenid", &tizenId);
+    if (ret != SYSTEM_INFO_ERROR_NONE) {
+        /* Error handling */
+	    dlog_print(DLOG_ERROR, LOG_TAG, "Tizen ID Failed");
+        return NULL;
+    }
+
+    dlog_print(DLOG_INFO, LOG_TAG, "Tizen ID: %s", tizenId);
+
+	return tizenId;
 }
 
-void fetch_profile_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info){
-	if(!download_config_file(app_get_data_path()))	{
-		dlog_print(DLOG_INFO, LOG_TAG, "Downloaded Config");
-		load_profile_id_to_screen(vc);
+int update_user_id(const char* tizenId, char* config_dir, char* user_id){
+	char id[256];
+	int id_no = -1;
+
+	char filePath[256];
+	strcpy(filePath, config_dir);
+	if(filePath[strlen(filePath)-1]!='/'){
+	strcat(filePath, "/");
 	}
-	else
-		dlog_print(DLOG_ERROR, LOG_TAG, "Config Fetch Failed");
+	int pathSize = strlen(filePath);
+	char* filename = "config.cfg";
+	strcpy(filePath+pathSize, filename);
+	FILE *config_file = fopen(filePath, "r");
+	if(!config_file){
+		dlog_print(DLOG_ERROR, LOG_TAG, "Failed to open file: %s", filePath);
+		strcpy(id, "001");
+	}
+	else{
+		char tmp[256];
+		fscanf(config_file, "%s", user_id);
+		if(strlen(user_id)>4)
+			sscanf(user_id+strlen(user_id)-3, "%d", &id_no);
+		sprintf(id, "%03d", id_no+1);
+		fclose(config_file);
+	}
+	config_file = fopen(filePath, "w");
+	if(!config_file){
+		dlog_print(DLOG_ERROR, LOG_TAG, "Failed to modify file: %s", filePath);
+		return 0;
+	}
+	else{
+		// sprintf(id, "%03d", id_no+1);
+		fprintf(config_file, "%s-%s", tizenId, id);
+		sprintf(user_id, "%s-%s", tizenId, id);
+		fclose(config_file);
+	}
+	if(!strlen(id)) return 0;
+	return 1;
+}
+
+void load_profile_id_to_screen(uib_view1_view_context *vc){
+	char* id="None";
+	update_user_id(load_TizenId(), app_get_data_path(), user_id);
+	if(strlen(user_id)>4)
+		id = user_id + strlen(user_id)-3;
+	// if(get_id_from_config(app_get_data_path(), id)){
+	// 	dlog_print(DLOG_INFO, LOG_TAG, "Read id: %s", id);
+	// }
+	// else{
+	// 	// int error = system_info_get_platform_string("http://tizen.org/system/tizenid", id);
+	// 	strcpy(id, "None");
+	// }
+	// if (strcmp(id, user_id)){
+	// 	strcpy(user_id, id);
+		// stop_service();
+		char formatted_label[256];
+		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>Profile = %s </font/>", FONT_SIZE, id);
+		elm_object_text_set(((uib_view1_view_context*)vc)->profile_id, formatted_label);
+		reset_stored_data(app_get_data_path());
+	// }
+}
+
+int nProfileClicked = 0;
+time_t last_profClickedTimestamp = 0;
+void fetch_profile_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info){
+	if((time(NULL) - last_profClickedTimestamp) > PROFILE_RESET_LAST_TIMELIMIT)
+		nProfileClicked = 0;
+	else if(!(nProfileClicked % PROFILE_RESET_N_REQ))
+		load_profile_id_to_screen(vc);
+	// // if(!download_config_file(app_get_data_path()))	{
+	// if(update_user_id(load_TizenId(), app_get_data_path(), user_id))	{
+	// 	dlog_print(DLOG_INFO, LOG_TAG, "Updated Config");
+	// 	load_profile_id_to_screen(vc);
+	// }
+	// else
+	// 	dlog_print(DLOG_ERROR, LOG_TAG, "Config Not Changed");
+	nProfileClicked = (nProfileClicked + 1) % PROFILE_RESET_N_REQ;
+	last_profClickedTimestamp = time(NULL);
 }
