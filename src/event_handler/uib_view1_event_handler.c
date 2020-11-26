@@ -74,6 +74,7 @@ const char* get_dataSize(char *fsize){
 
 static void launch_service()
 {
+	if(is_running) return;
 	dlog_print(DLOG_ERROR, LOG_TAG, ">>> launch_service called...");
 	app_control_h app_control = NULL;
 	if (app_control_create(&app_control)== APP_CONTROL_ERROR_NONE)
@@ -82,6 +83,7 @@ static void launch_service()
 			&& (app_control_send_launch_request(app_control, NULL, &appdata) == APP_CONTROL_ERROR_NONE))
 		{
 			dlog_print(DLOG_INFO, LOG_TAG, "App launch request sent!");
+			is_running=1;
 		}
 		else
 		{
@@ -102,6 +104,7 @@ static void launch_service()
 
 static void stop_service()
 {
+	if(!is_running) return;
 	dlog_print(DLOG_ERROR, LOG_TAG, ">>> stop_service called...");
 	app_control_h app_control = NULL;
 	if (app_control_create(&app_control)== APP_CONTROL_ERROR_NONE)
@@ -110,7 +113,8 @@ static void stop_service()
 			&& (app_control_add_extra_data(app_control, "service_action", "stop") == APP_CONTROL_ERROR_NONE)
 			&& (app_control_send_launch_request(app_control, NULL, &appdata) == APP_CONTROL_ERROR_NONE))
 		{
-			dlog_print(DLOG_INFO, LOG_TAG, "App launch request sent!");
+			dlog_print(DLOG_INFO, LOG_TAG, "App stop request sent!");
+			is_running=0;
 		}
 		else
 		{
@@ -159,7 +163,6 @@ void start_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_i
 		timer = ecore_timer_loop_add(5, update_fileSize_info, vc);
 	else
 		ecore_timer_thaw(timer);
-	is_running=1;
 }
 
 void stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info){
@@ -168,7 +171,6 @@ void stop_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_in
 		ecore_timer_freeze(timer);
 		ecore_timer_reset(timer);
 	}
-	is_running=0;
 	char formatted_label[256];
 	sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>%s </font/>", FONT_SIZE, "STOPPED");
 	elm_object_text_set(((uib_view1_view_context*)vc)->activity, formatted_label);
@@ -189,6 +191,8 @@ void upload_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_
 void reset_stored_data(char* dir){
 	char cmd[256];
     sprintf(cmd, "find %s -maxdepth 1 -type f -name '*.csv' -exec rm -r {} \\;", dir);
+    system(cmd);
+    sprintf(cmd, "rm -r %scurrent", dir);
     system(cmd);
 }
 
@@ -249,7 +253,6 @@ int update_user_id(const char* tizenId, char* config_dir, char* user_id){
 		strcpy(id, "001");
 	}
 	else{
-		char tmp[256];
 		fscanf(config_file, "%s", user_id);
 		if(strlen(user_id)>4)
 			sscanf(user_id+strlen(user_id)-3, "%d", &id_no);
@@ -285,7 +288,7 @@ void load_profile_id_to_screen(uib_view1_view_context *vc){
 	// }
 	// if (strcmp(id, user_id)){
 	// 	strcpy(user_id, id);
-		// stop_service();
+		stop_service();
 		char formatted_label[256];
 		sprintf(formatted_label, "<font=Tizen:style=Regular font_size=%d>Profile = %s </font/>", FONT_SIZE, id);
 		elm_object_text_set(((uib_view1_view_context*)vc)->profile_id, formatted_label);
@@ -293,12 +296,14 @@ void load_profile_id_to_screen(uib_view1_view_context *vc){
 	// }
 }
 
-int nProfileClicked = 0;
+int nProfileClicked = -1;
 time_t last_profClickedTimestamp = 0;
 void fetch_profile_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info){
-	if((time(NULL) - last_profClickedTimestamp) > PROFILE_RESET_LAST_TIMELIMIT)
+	// reset clicks older than certain time threshold
+	if(nProfileClicked != -1 && (time(NULL) - last_profClickedTimestamp) > PROFILE_RESET_LAST_TIMELIMIT)
 		nProfileClicked = 0;
-	else if(!(nProfileClicked % PROFILE_RESET_N_REQ))
+	nProfileClicked = (nProfileClicked + 1) % PROFILE_RESET_N_REQ;
+	if(!(nProfileClicked % PROFILE_RESET_N_REQ))
 		load_profile_id_to_screen(vc);
 	// // if(!download_config_file(app_get_data_path()))	{
 	// if(update_user_id(load_TizenId(), app_get_data_path(), user_id))	{
@@ -307,6 +312,5 @@ void fetch_profile_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void 
 	// }
 	// else
 	// 	dlog_print(DLOG_ERROR, LOG_TAG, "Config Not Changed");
-	nProfileClicked = (nProfileClicked + 1) % PROFILE_RESET_N_REQ;
 	last_profClickedTimestamp = time(NULL);
 }
